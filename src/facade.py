@@ -36,7 +36,6 @@ class UpBackFacade:
             cron=str(data[3])
         )
 
-
     def get_tracked_app_by_uuid(self, service_uuid: UUID) -> TrackedApp | None:
         data = self.db.get_tracked_app_by_uuid(service_uuid)
 
@@ -92,7 +91,7 @@ class UpBackFacade:
     def sync_app(self, tracked_app: TrackedApp):
         source_dir = Path(tracked_app.file_path)
         folder_name = source_dir.stem
-        backup_dir = Path(__file__).parent.parent.joinpath("backups")
+        backup_dir = Path(__file__).parent.parent.joinpath("backups").joinpath(folder_name)
         backup_dir.mkdir(parents=True, exist_ok=True)
 
         if not source_dir.is_dir():

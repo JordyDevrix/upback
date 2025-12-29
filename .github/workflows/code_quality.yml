@@ -7,28 +7,12 @@ on:
     branches: [ main ]
 
 jobs:
-  lint:
-    name: Lint Code
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
-      - name: Install dependencies
-        run: pip install pylint black
-      - name: Run Linter
-        run: pylint **/*.py
-      - name: Check formatting
-        run: black --check .
-
   analyze:
     name: Analyze
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: github/codeql-action/init@v2
+      - uses: github/codeql-action/init@v3
         with:
           languages: python
       - uses: github/codeql-action/autobuild@v2

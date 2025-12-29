@@ -7,3 +7,4 @@ class TrackedApp:
     uuid: UUID
     file_path: str
     auto_update: bool
+    cron: str

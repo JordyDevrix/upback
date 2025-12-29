@@ -1,5 +1,7 @@
 import sqlite3
 from pathlib import Path
+from uuid import UUID
+
 from src.models.models import TrackedApp
 
 
@@ -13,7 +15,8 @@ class DB:
         CREATE TABLE IF NOT EXISTS tracked_apps (
             uuid TEXT PRIMARY KEY NOT NULL,
             file_path TEXT NOT NULL,
-            auto_update BOOLEAN NOT NULL
+            auto_update BOOLEAN NOT NULL,
+            cron TEXT NOT NULL
         )
         """
         with sqlite3.connect(self.db_path) as conn:
@@ -22,12 +25,12 @@ class DB:
 
     def save_tracked_app(self, tracked_app: TrackedApp):
         sql = """
-        INSERT INTO tracked_apps (uuid, file_path, auto_update)
-        VALUES (?, ?, ?)
+        INSERT INTO tracked_apps (uuid, file_path, auto_update, cron)
+        VALUES (?, ?, ?, ?)
         """
         try:
             with sqlite3.connect(self.db_path) as conn:
-                conn.execute(sql, (str(tracked_app.uuid), tracked_app.file_path, tracked_app.auto_update))
+                conn.execute(sql, (str(tracked_app.uuid), tracked_app.file_path, tracked_app.auto_update, tracked_app.cron))
                 conn.commit()
         except Exception as e:
             print("DB Error:", e)
@@ -38,3 +41,20 @@ class DB:
             cursor = conn.cursor()
             cursor.execute(sql)
             return cursor.fetchall()
+
+    def get_tracked_app_by_file_path(self, file_path: str) -> tuple:
+        sql = "SELECT * FROM tracked_apps WHERE file_path = ?"
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute(sql, (file_path,))
+            return cursor.fetchone()
+
+    def get_tracked_app_by_uuid(self, service_uuid: UUID) -> tuple:
+        sql = "SELECT * FROM tracked_apps WHERE uuid = ?"
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute(sql, (str(service_uuid),))
+            return cursor.fetchone()
+
+
+

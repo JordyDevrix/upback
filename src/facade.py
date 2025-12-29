@@ -62,13 +62,11 @@ class UpBackFacade:
                 cron=str(data["cron"]),
             )
 
-            existing_app = self.get_tracked_app_by_file_path(file_path)
-
-            if existing_app is None:
-                self.db.save_tracked_app(tracked_app)
-                return HTTPStatus.CREATED
-            else:
+            if self.get_tracked_app_by_file_path(file_path):
                 return HTTPStatus.CONFLICT
+
+            self.db.save_tracked_app(tracked_app)
+            return HTTPStatus.CREATED
         except KeyError:
             return HTTPStatus.BAD_REQUEST
         except Exception as e:

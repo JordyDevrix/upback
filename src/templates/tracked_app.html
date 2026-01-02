@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        body {
+            margin-bottom: 1em;
+        }
+
+        main {
+            width: 80%;
+            display: flex;
+            flex-direction: column;
+            gap: 2em;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-family: JetBrainsMono;
+            font-weight: bold;
+        }
+
+        h2 {
+            padding: 0.4em 1em;
+            margin: 0;
+        }
+
+        th {
+            font-family: JetBrainsMono;
+            font-weight: bold;
+            text-align: left;
+            padding: 1em;
+            color: var(--text-light);
+        }
+
+        td {
+            font-family: JetBrainsMono;
+            font-weight: lighter;
+            padding: 1em;
+            color: var(--text-light);
+        }
+
+        tr {
+            background-color: var(--row-even);
+        }
+
+        tr:nth-child(even) {
+            background-color: var(--row-odd);
+        }
+
+        .table-responsive {
+            width: 100%;
+            border: 1px solid var(--text-light);
+            border-radius: var(--normal-border);
+            overflow: hidden;
+        }
+
+        .table-options {
+            margin: 0 1em;
+        }
+
+        .config-details-responsive {
+            display: grid;
+            grid-template-columns: 7fr 3fr;
+            gap: 2em;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        header {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .title {
+            display: flex;
+            gap: 1em;
+        }
+
+        .title .back {
+            cursor: pointer;
+        }
+
+        .copy-cell {
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem;
+        }
+
+        .copy-btn {
+            background: none;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            display: flex;
+        }
+
+        .copy-btn img {
+            width: 16px;
+            height: 16px;
+        }
+
+        .copy-btn:hover {
+            filter: invert(55%) sepia(100%) saturate(500%) hue-rotate(190deg);
+        }
+
+        .human-cron {
+            color: var(--text-muted);
+            margin-left: 1rem;
+        }
+
+        .sync-icon {
+            width: 16px;
+            height: 16px;
+            vertical-align: middle;
+            animation: spin 2s linear infinite;
+        }
+
+        #sync-icon {
+            display: none;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(360deg);
+            }
+            to {
+                transform: rotate(0deg);
+            }
+        }
+
+        hr {
+            margin: 0;
+        }
+
+        .table-options {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75em;
+            padding: 1em;
+            margin: 0;
+        }
+
+        .table-options-row-responsive {
+            gap: 0.75em;
+            display: grid;
+            width: 100%;
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .table-options-row-responsive button {
+            font-family: 'JetBrainsMono', monospace;
+            background-color: inherit;
+            border: 1px solid var(--bg-light);
+            border-radius: var(--button-border);
+            box-shadow: 0 0 1px var(--bg-light),
+            0 0 1px inset var(--bg-light);
+            padding: 1em;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .table-options-row-responsive button:hover {
+            transition-duration: 0.1s;
+            background-color: var(--bg-light);
+        }
+
+        button:hover img {
+            filter: invert(50%) sepia(100%) saturate(500%) hue-rotate(200deg);
+        }
+
+        .toggle-sync {
+            border: 1px solid var(--bg-light);
+            border-radius: var(--button-border);
+            box-shadow: 0 0 1px var(--bg-light),
+            0 0 1px inset var(--bg-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-direction: row;
+            padding: 1em;
+        }
+
+        .toggle-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        small {
+            color: var(--text-muted);
+        }
+
+        #backups {
+            width: 100%;
+            table-layout: fixed;
+        }
+
+        #backups .col-file {
+            width: 45%;
+        }
+
+        #backups .col-timestamp {
+            width: 25%;
+        }
+
+        #backups .col-backup-id {
+            width: 30%;
+        }
+
+        #backups .col-status {
+            width: 8em;
+        }
+
+        .sync-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/fonts.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/colors.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/toggle.css') }}">
+    <script>
+        const TRACKED_APP_UUID = "{{ tracked_app.uuid }}";
+        const globalBackups = {};
+        let nextCronES = null;
+        let allSyncsES = null;
+
+        function copyToClipboard(element) {
+            const text = element.closest(".copy-cell").dataset.copy;
+            if (!text) return;
+
+            console.log(text)
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text)
+                    .then(() => console.log(`Copied: ${text}`))
+                    .catch(err => console.error("Copy failed", err));
+            } else {
+                const textarea = document.createElement("textarea");
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                try {
+                    document.execCommand("copy");
+                    console.log(`Copied (fallback): ${text}`);
+                } catch (err) {
+                    console.error("Fallback copy failed", err);
+                }
+                document.body.removeChild(textarea);
+            }
+        }
+
+        function toggleChanged(element) {
+            const isChecked = element.checked;
+            const params = {
+                enabled: isChecked,
+                timestamp: Date.now()
+            };
+
+            fetch("{{ url_for('get_tracked_apps_api') }}", {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(params)
+            })
+                .then(response => response.json())
+                .then(data => console.log('Server response:', data))
+                .catch(error => console.error('Error:', error));
+        }
+
+        function trackCrons() {
+            const next_run_element = document.getElementById("next-run");
+            const serviceUuid = "{{ tracked_app.uuid }}";
+
+            if (nextCronES) nextCronES.close();
+
+            nextCronES = new EventSource(`/api/tracked-apps/next-cron/${serviceUuid}`);
+            nextCronES.addEventListener("next_run", async (event) => {
+                const data = JSON.parse(event.data);
+                const secs = data.seconds_remaining;
+                const hh = String(Math.floor(secs / 3600)).padStart(2, "0");
+                const mm = String(Math.floor((secs % 3600) / 60)).padStart(2, "0");
+                const ss = String(secs % 60).padStart(2, "0");
+                next_run_element.textContent = `${hh}h ${mm}m ${ss}s`;
+
+                if (data.sync_run === true) {
+                    setTimeout(() => loadBackups(), 1000);
+                }
+            });
+        }
+
+        function trackAllSyncs() {
+            const globalSyncIconElement = document.getElementById("sync-icon");
+
+            if (allSyncsES) allSyncsES.close();
+            allSyncsES = new EventSource(`/api/tracked-apps/syncs`);
+            allSyncsES.addEventListener("progress", async (event) => {
+                const data = JSON.parse(event.data);
+
+                for (syncBackupId in data.current_app_syncs) {
+                    const currentApp = data.current_app_syncs[syncBackupId];
+
+                    if (currentApp.app_id !== TRACKED_APP_UUID) continue;
+
+                    if (!globalBackups.hasOwnProperty(syncBackupId)) {
+                        await loadBackups();
+                    }
+                }
+
+                for (const backupId in globalBackups) {
+                    let syncIconElement = document.getElementById(`sync-icon-${backupId}`);
+
+                    if (!syncIconElement) {
+                        await loadBackups();
+                        syncIconElement = document.getElementById(`sync-icon-${backupId}`);
+                    }
+
+                    if (data.current_app_syncs[backupId]) {
+                        syncIconElement.style.display = "inline-block";
+                        globalSyncIconElement.style.display = "inline-block";
+                    } else {
+                        syncIconElement.style.display = "none";
+                        globalSyncIconElement.style.display = "none";
+                    }
+                }
+            });
+        }
+
+        async function startSync(uuid = null) {
+            try {
+                const url = uuid
+                    ? `/api/tracked-apps/sync/${uuid}`
+                    : `/api/tracked-apps/sync`;
+
+                const response = await fetch(url, {method: "POST"});
+                if (!response.ok) {
+                    return null;
+                }
+                await loadBackups()
+                // setTimeout(async () => await loadBackups(), 1)
+            } catch (err) {
+                console.error("Error starting sync", err);
+            }
+        }
+
+        async function loadBackups() {
+            const res = await fetch(`/api/tracked-apps/${TRACKED_APP_UUID}/backups`);
+            if (!res.ok) return;
+
+            const data = await res.json();
+            const tbody = document.getElementById("backups-body");
+
+            tbody.innerHTML = "";
+            if (!data.backups || data.backups.length === 0) {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td colspan="4" style="text-align: center; color: var(--text-muted);">
+                        No backups found
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            } else {
+                for (const backup of data.backups) {
+                    const tr = document.createElement("tr");
+                    tr.innerHTML = `
+                        <td>${backup.file_path}</td>
+                        <td>${backup.timestamp}</td>
+                        <td>${backup.backup_id}</td>
+                        <td class="sync-status">
+                            <img class="sync-icon"
+                                id="sync-icon-${backup.backup_id}"
+                                data-backup-id="${backup.backup_id}"
+                                src="{{ url_for('static', filename='icons/sync.svg') }}"
+                                alt="Sync icon"
+                                hidden
+                            >
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+
+                    globalBackups[backup.backup_id] = {
+                        "backup_id": backup.backup_id,
+                        "app_id": TRACKED_APP_UUID,
+                        "file_path": backup.file_path,
+                        "timestamp": backup.timestamp
+                    }
+                }
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            loadBackups();
+            trackCrons();
+            trackAllSyncs();
+
+            const scrollY = sessionStorage.getItem("scrollY");
+            if (scrollY) {
+                window.scrollTo(0, parseInt(scrollY));
+                sessionStorage.removeItem("scrollY");
+            }
+        });
+
+        window.addEventListener("beforeunload", () => {
+            if (nextCronES) {
+                nextCronES.close();
+                nextCronES = null;
+            }
+
+            if (allSyncsES) {
+                allSyncsES.close();
+                allSyncsES = null;
+            }
+        });
+    </script>
+</head>
+<body>
+{% include '_navbar.html' %}
+<main>
+    <header>
+        <h1>Tracked Applications</h1>
+        <div class="title">
+            <p class="back" onclick="history.back()">Applications</p>
+            <p>&lt;</p>
+            <p>{{ tracked_app.uuid }}</p>
+        </div>
+    </header>
+    <div class="config-details-responsive">
+        <div class="table-responsive">
+            <table>
+                <thead>
+                <tr>
+                    <th>File path</th>
+                    <td class="copy-cell" data-copy="{{ tracked_app.file_path }}">
+                        {{ tracked_app.file_path }}
+                        <button class="copy-btn" title="Copy" onclick="copyToClipboard(this)">
+                            <img src="{{ url_for('static', filename='icons/clipboard.svg') }}">
+                        </button>
+                    </td>
+                </tr>
+                <tr>
+                    <th>UUID</th>
+                    <td class="copy-cell" data-copy="{{ tracked_app.uuid }}">
+                        {{ tracked_app.uuid }}
+                        <button class="copy-btn" title="Copy" onclick="copyToClipboard(this)">
+                            <img src="{{ url_for('static', filename='icons/clipboard.svg') }}">
+                        </button>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Auto sync enabled</th>
+                    <td>{{ tracked_app.auto_update }}</td>
+                </tr>
+                <tr>
+                    <th>Cron</th>
+                    <td class="copy-cell" data-copy="{{ tracked_app.cron }}">
+                        {{ tracked_app.cron }} <span class="human-cron">({{ human_cron }})</span>
+                        <button class="copy-btn" title="Copy" onclick="copyToClipboard(this)">
+                            <img src="{{ url_for('static', filename='icons/clipboard.svg') }}">
+                        </button>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Next run</th>
+                    <td>
+                        <span id="next-run">-</span>
+                        <img id="sync-icon" class="sync-icon" src="{{ url_for('static', filename='icons/sync.svg') }}"
+                             alt="Sync icon">
+                    </td>
+                </tr>
+                </thead>
+            </table>
+        </div>
+        <div class="table-responsive">
+            <h2>Options</h2>
+            <hr>
+            <div class="table-options">
+                <div class="table-options-row">
+                    <div class="toggle-sync">
+                        <div class="toggle-text">
+                            <span>Active status</span>
+                            <small>Disable/enable</small>
+                        </div>
+                        <div class="toggle-switch">
+                            <input class="toggle-input" id="toggle" type="checkbox" onclick="toggleChanged(this)">
+                            <label class="toggle-label" for="toggle"></label>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-options-row">
+                    <div class="table-options-row-responsive">
+                        <button id="sync-now" title="Sync now" onclick="startSync('{{ tracked_app.uuid }}')">
+                            <img style="width: 20%" src="{{ url_for('static', filename='icons/sync.svg') }}"
+                                 alt="Sync icon">
+                            Sync now
+                        </button>
+                        <button id="delete" title="Remove">
+                            <img style="width: 20%" src="{{ url_for('static', filename='icons/trashcan.svg') }}"
+                                 alt="Trashcan icon">
+                            Remove
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table id="backups">
+            <colgroup>
+                <col class="col-file">
+                <col class="col-timestamp">
+                <col class="col-backup-id">
+                <col class="col-status">
+            </colgroup>
+            <thead>
+            <tr>
+                <th>File</th>
+                <th>Timestamp</th>
+                <th>Backup ID</th>
+                <th class="sync-status">Status</th>
+            </tr>
+            </thead>
+            <tbody id="backups-body"></tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>

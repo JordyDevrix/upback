@@ -1,0 +1,35 @@
+:root {
+    /* Primary / Accent */
+    --primary: #000DFF;       /* Dodger Blue */
+    --primary-dark: #180048;  /* Darker Blue for hover / active states */
+    --secondary: #AEB2FF;
+
+    /* Backgrounds */
+    --bg-dark: #121212;       /* Dark page background */
+    --bg-light: #1e1e1e;      /* Slightly lighter for panels / tables */
+
+
+    /* Text */
+    --text-light: #f0f0f0;    /* Light text */
+    --text-muted: #b0b0b0;    /* Secondary text */
+
+    /* Table row backgrounds */
+    --row-even: #1a1a1a;
+    --row-odd: #222222;
+
+    /* Buttons / Alerts */
+    --success: #28a745;
+    --warning: #ffc107;
+    --danger: #dc3545;
+
+    --normal-border: 10px;
+    --button-border: 5px;
+
+    body {
+        background-color: var(--bg-dark);
+    }
+
+    h1, h2, h3, h4, p, th, td, button, span {
+        color: var(--text-light);
+    }
+}

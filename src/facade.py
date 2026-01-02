@@ -1,6 +1,9 @@
+import threading
+import time
+import zipfile
+from dataclasses import asdict
 from datetime import datetime
 from pathlib import Path
-import shutil
 from http import HTTPStatus
 from typing import List
 from uuid import UUID
@@ -9,9 +12,11 @@ import uuid
 
 from apscheduler.triggers.cron import CronTrigger
 
-from src.models.models import TrackedApp
+from src.exceptions.exceptions import ApiException
+from src.models.models import TrackedApp, Backup, SyncStatus
 
 from src.database.database import DB
+from src.services.synchronization_service import running_syncs
 from src.utils.utils import sse, normalize_path
 
 
@@ -26,7 +31,7 @@ class UpBackFacade:
         data = self.db.get_tracked_app_by_file_path(normalize_path(file_path))
 
         if data is None:
-            return None
+            raise ApiException("Tracked app not found", code=404)
 
         return TrackedApp(
             uuid=data[0],
@@ -39,7 +44,7 @@ class UpBackFacade:
         data = self.db.get_tracked_app_by_uuid(service_uuid)
 
         if data is None:
-            return None
+            raise ApiException("Tracked app not found", code=404)
 
         return TrackedApp(
             uuid=data[0],
@@ -61,18 +66,19 @@ class UpBackFacade:
                 cron=str(data["cron"]),
             )
 
-            existing_app = self.get_tracked_app_by_file_path(file_path)
+            existing_app = None
+            try:
+                existing_app = self.get_tracked_app_by_file_path(file_path)
+            except ApiException as e:
+                print(e)
 
             if existing_app is None:
                 self.db.save_tracked_app(tracked_app)
                 return HTTPStatus.CREATED
             else:
-                return HTTPStatus.CONFLICT
+                raise ApiException("Tracked app already exists", code=HTTPStatus.CONFLICT)
         except KeyError:
-            return HTTPStatus.BAD_REQUEST
-        except Exception as e:
-            print(e)
-            return HTTPStatus.INTERNAL_SERVER_ERROR
+            raise ApiException("Invalid parameters", code=400)
 
     def get_tracked_apps(self) -> List[TrackedApp]:
         raw_rows = self.db.get_tracked_apps()
@@ -87,71 +93,108 @@ class UpBackFacade:
         ]
         return tracked_apps
 
-    def sync_app(self, tracked_app: TrackedApp):
+    def __sync_app(self, tracked_app: TrackedApp, sync_id):
         source_dir = Path(tracked_app.file_path)
         folder_name = source_dir.stem
-        backup_dir = Path(__file__).parent.parent.joinpath("backups").joinpath(folder_name)
+        backup_dir = Path(__file__).parent.parent / "backups" / folder_name
         backup_dir.mkdir(parents=True, exist_ok=True)
 
         if not source_dir.is_dir():
             raise FileNotFoundError(f"{source_dir} could not be found")
 
-        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        archive_base = backup_dir.joinpath(f"{timestamp}_{folder_name}")
+        timestamp = datetime.now().timestamp()
+        zip_path = backup_dir / f"{sync_id}_{folder_name}.zip"
 
-        shutil.make_archive(
-            base_name=str(archive_base),
-            format="zip",
-            root_dir=source_dir.parent,
-            base_dir=source_dir.name
-        )
+        self.db.save_backup(Backup(
+            backup_id=sync_id,
+            app_id=str(tracked_app.uuid),
+            file_path=normalize_path(str(zip_path)),
+            timestamp=str(timestamp)
+        ))
+
+        files = [p for p in source_dir.rglob("*") if p.is_file()]
+        total_files = len(files)
+
+        with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zipf:
+            for idx, file in enumerate(files, start=1):
+                arcname = file.relative_to(source_dir.parent)
+                zipf.write(file, arcname)
+
+                sync_status = SyncStatus(
+                    app_id=str(tracked_app.uuid),
+                    current=idx,
+                    total=total_files,
+                    file=str(file),
+                )
+
+                running_syncs[sync_id] = sync_status
+
+                yield sync_status
+
+                if idx == total_files:
+                    running_syncs.pop(sync_id)
 
     def sync_all_apps(self):
         tracked_apps = self.get_tracked_apps()
-        synced_apps: List[TrackedApp] = []
-        for idx, tracked_app in enumerate(tracked_apps):
-            try:
+
+        def __sync():
+            for app_index, tracked_app in enumerate(tracked_apps):
+                app_sync_id = str(uuid.uuid4())
+
+                for _ in self.__sync_app(tracked_app, app_sync_id):
+                    pass
+
+        threading.Thread(target=__sync).start()
+
+        return HTTPStatus.ACCEPTED.value
+
+
+    def sync_app_by_uuid(self, service_uuid: UUID):
+        tracked_app = self.get_tracked_app_by_uuid(service_uuid)
+        sync_id = str(uuid.uuid4())
+
+        if tracked_app is None:
+            raise ApiException("No tracked app found", code=HTTPStatus.NOT_FOUND.value)
+
+        def __sync(_sync_id):
+            for _ in self.__sync_app(tracked_app, _sync_id):
+                pass
+
+        threading.Thread(target=__sync, args=(sync_id,)).start()
+
+        return HTTPStatus.ACCEPTED.value
+
+    def stream_all_syncs(self):
+        while True:
+            current_syncs = {sid: asdict(status) for sid, status in running_syncs.items()}
+
+            if not current_syncs:
                 yield sse(
                     data={
-                        "index": idx + 1,
-                        "amount": len(tracked_apps),
-                        "uuid": tracked_app.uuid,
-                        "file_path": tracked_app.file_path,
-                        "status": "starting"
+                        "current_app_syncs": {}
                     },
                     event="progress",
-                    id=idx
                 )
-
-                self.sync_app(tracked_app)
-
+            else:
                 yield sse(
                     data={
-                        "index": idx + 1,
-                        "amount": len(tracked_apps),
-                        "uuid": tracked_app.uuid,
-                        "file_path": tracked_app.file_path,
-                        "status": "success"
+                        "current_app_syncs": current_syncs
                     },
                     event="progress",
-                    id=idx
                 )
-                synced_apps.append(tracked_app)
-            except Exception as e:
-                yield sse(
-                    data={
-                        "status": f"{e.__class__.__name__}: {str(e)}",
-                    },
-                    event="error",
-                    id=1
-                )
+            time.sleep(1)
 
-        yield sse(
-            data={
-                "status": "finished",
-                "amount_synced": len(synced_apps),
-                "amount_failed": len(tracked_apps) - len(synced_apps)
-            },
-            event="done",
-            id=0
-        )
+    def get_app_backups(self, app_id: UUID) -> List[Backup]:
+        backup_data = self.db.get_backups(app_id)
+
+        backups: List[Backup] = []
+
+        for backup in backup_data:
+            backups.append(Backup(
+                backup_id=backup[0],
+                app_id=backup[1],
+                file_path=backup[2].split("/")[-1],
+                timestamp=backup[3],
+            ))
+
+        return backups

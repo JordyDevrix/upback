@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        body {
+            width: 80%;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-family: JetBrainsMono;
+            font-weight: bold;
+        }
+    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/fonts.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/colors.css') }}">
+</head>
+<body>
+    {% include '_navbar.html' %}
+    <h1>Add new tracked app</h1>
+</body>
+</html>

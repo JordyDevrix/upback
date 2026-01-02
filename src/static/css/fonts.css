@@ -1,0 +1,18 @@
+@font-face {
+    font-family: 'JetBrainsMono';
+    src: url('/static/fonts/JetBrainsMono-Regular.ttf') format('truetype');
+    font-weight: normal;
+}
+@font-face {
+    font-family: 'JetBrainsMono';
+    src: url('/static/fonts/JetBrainsMono-Bold.ttf') format('truetype');
+    font-weight: bold;
+}
+@font-face {
+    font-family: 'JetBrainsMono';
+    src: url('/static/fonts/JetBrainsMono-Thin.ttf') format('truetype');
+    font-weight: 100;
+}
+body {
+    font-family: 'JetBrainsMono', monospace;
+}

@@ -37,7 +37,4 @@ def start_scheduler():
 
 
 def backup_service(service_uuid: UUID):
-    print("Backing up service: ", service_uuid)
-    service: TrackedApp = upBackFacade.get_tracked_app_by_uuid(service_uuid)
-    print(f"{service.file_path}\n{service.cron}\n{service.file_path}")
-    upBackFacade.sync_app(service)
+    upBackFacade.sync_app_by_uuid(service_uuid)

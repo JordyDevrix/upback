@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tracked Applications</title>
+    <style>
+        body {
+            margin-bottom: 1em;
+        }
+
+        main {
+            width: 80%;
+            display: flex;
+            flex-direction: column;
+            gap: 2em;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-family: JetBrainsMono;
+            font-weight: bold;
+            color: var(--text-light);
+        }
+
+        header {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .title {
+            display: flex;
+            gap: 1em;
+        }
+
+        th {
+            font-family: JetBrainsMono;
+            font-weight: bold;
+            text-align: left;
+            padding: 1em;
+            color: var(--text-light);
+        }
+
+        td {
+            font-family: JetBrainsMono;
+            font-weight: lighter;
+            padding: 1em;
+            color: var(--text-light);
+        }
+
+        tr:hover td {
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+
+        .add-tracked-app {
+            font-family: JetBrainsMono;
+            font-weight: lighter;
+            padding: 1em;
+            text-align: center;
+            display: block;
+            background-color: var(--primary);
+            color: var(--text-light);
+            text-decoration: none;
+        }
+
+        .add-tracked-app:hover {
+            background-color: var(--primary-dark);
+            cursor: pointer;
+        }
+
+        tr {
+            background-color: var(--row-even);
+        }
+
+        tr:nth-child(even) {
+            background-color: var(--row-odd);
+        }
+
+        .table-responsive {
+            width: 100%;
+            border: 1px solid var(--text-light);
+            border-radius: var(--normal-border);
+            overflow: hidden;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/fonts.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/colors.css') }}">
+    <script>
+        function goToTrackedApp(uuid) {
+            window.location.href = `/tracked-apps/${uuid}`;
+        }
+    </script>
+</head>
+<body>
+{% include '_navbar.html' %}
+<main>
+    <header>
+        <h1>Tracked Applications</h1>
+        <div class="title">
+            <p class="back">Applications</p>
+        </div>
+    </header>
+    <div class="table-responsive">
+        <table>
+            <thead>
+            <tr>
+                <th>UUID</th>
+                <th>File Path</th>
+                <th>Auto Update</th>
+                <th>Cron</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for app in tracked_apps %}
+            <tr onclick="goToTrackedApp('{{ app.uuid }}')" class="clickable-row">
+                <td>{{ app.uuid }}</td>
+                <td>{{ app.file_path }}</td>
+                <td>{{ app.auto_update }}</td>
+                <td>{{ app.cron }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <a class="add-tracked-app" href="/add-tracked-app">Add new tracked app</a>
+    </div>
+</main>
+</body>
+</html>

@@ -1,17 +1,17 @@
 :root {
     /* Primary / Accent */
-    --primary: #000DFF;       /* Dodger Blue */
-    --primary-dark: #180048;  /* Darker Blue for hover / active states */
+    --primary: #000DFF; /* Dodger Blue */
+    --primary-dark: #180048; /* Darker Blue for hover / active states */
     --secondary: #AEB2FF;
 
     /* Backgrounds */
-    --bg-dark: #121212;       /* Dark page background */
-    --bg-light: #1e1e1e;      /* Slightly lighter for panels / tables */
+    --bg-dark: #121212; /* Dark page background */
+    --bg-light: #1e1e1e; /* Slightly lighter for panels / tables */
 
 
     /* Text */
-    --text-light: #f0f0f0;    /* Light text */
-    --text-muted: #b0b0b0;    /* Secondary text */
+    --text-light: #f0f0f0; /* Light text */
+    --text-muted: #b0b0b0; /* Secondary text */
 
     /* Table row backgrounds */
     --row-even: #1a1a1a;
@@ -21,6 +21,11 @@
     --success: #28a745;
     --warning: #ffc107;
     --danger: #dc3545;
+    --success-text: #08d725;
+    --danger-text: #ec1519;
+
+    --label-enabled: rgba(0, 255, 0, 0.08);
+    --label-disabled: rgba(255, 0, 0, 0.08);
 
     --normal-border: 10px;
     --button-border: 5px;
@@ -29,7 +34,16 @@
         background-color: var(--bg-dark);
     }
 
-    h1, h2, h3, h4, p, th, td, button, span {
+    h1, h2, h3, h4, p, th, td, button, span, label {
         color: var(--text-light);
+    }
+
+    button {
+        transition: 0.1s;
+    }
+
+    button:hover {
+        background-color: var(--primary-dark);
+        cursor: pointer;
     }
 }

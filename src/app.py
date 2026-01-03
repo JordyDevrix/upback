@@ -8,7 +8,7 @@ from src.facade import UpBackFacade
 from src.scheduled import scheduled
 from src.models.models import TrackedApp
 from src.services.synchronization_service import running_syncs
-from src.utils.utils import get_cron_description, stream_next_cron
+from src.utils.utils import get_cron_description, stream_next_cron, get_folder_data, get_home_directory
 
 app = Flask(__name__)
 
@@ -67,6 +67,17 @@ def get_tracked_apps_next_cron_api(uuid: UUID):
         stream_next_cron(tracked_app.cron),
         mimetype="text/event-stream"
     )
+
+
+@app.route("/api/file-system/api-path", methods=["GET"])
+def get_file_system_api_path_api():
+    return jsonify({"path": str(get_home_directory())})
+
+
+@app.route("/api/file-system", methods=["GET"])
+def get_file_system_api():
+    path = request.args.get("path")
+    return jsonify(get_folder_data(path))
 
 
 # Frontend routes

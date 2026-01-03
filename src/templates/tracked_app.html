@@ -223,6 +223,20 @@
             align-items: center;
             justify-content: center;
         }
+
+        #sync-status-enabled {
+            border-radius: var(--button-border);
+            color: var(--success-text);
+            background-color: var(--label-enabled);
+            padding: 3px;
+        }
+
+        #sync-status-disabled {
+            border-radius: var(--button-border);
+            color: var(--danger-text);
+            background-color: var(--label-disabled);
+            padding: 3px;
+        }
     </style>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/fonts.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/colors.css') }}">
@@ -454,7 +468,14 @@
                 </tr>
                 <tr>
                     <th>Auto sync enabled</th>
-                    <td>{{ tracked_app.auto_update }}</td>
+                    <td>
+                        {% if tracked_app.auto_update %}
+                        <span id="sync-status-enabled">true</span>
+                        {% else %}
+                        <span id="sync-status-disabled">false</span>
+                        {% endif %}
+                    </td>
+
                 </tr>
                 <tr>
                     <th>Cron</th>

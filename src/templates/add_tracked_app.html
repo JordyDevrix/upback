@@ -5,20 +5,456 @@
     <title>Title</title>
     <style>
         body {
+            margin-bottom: 1em;
+        }
+
+        main {
             width: 80%;
+            display: flex;
+            flex-direction: column;
+            gap: 2em;
             margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            flex-direction: column;
         }
 
         h1 {
             font-family: JetBrainsMono;
             font-weight: bold;
         }
+
+        section {
+            background-color: var(--bg-light);
+            border-radius: var(--normal-border);
+            border: 1px solid var(--text-light);
+        }
+
+        .form-header {
+            margin: 2em;
+            display: flex;
+            flex-direction: column;
+            gap: 1em;
+        }
+
+        h2, h3 {
+            margin: 0;
+        }
+
+        #h3 {
+            color: var(--text-muted);
+            font-weight: lighter;
+        }
+
+        form {
+            margin: 2em;
+            display: flex;
+            flex-direction: column;
+            gap: 2em;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5em;
+        }
+
+        button,
+        input,
+        option,
+        select {
+            font-family: JetBrainsMono;
+            border-radius: var(--button-border);
+            border: none;
+            padding: 0.75em;
+            box-sizing: border-box;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+        }
+
+        .form-group-inline {
+            display: flex;
+            flex-direction: row;
+            gap: 0.5em;
+        }
+
+        .form-group-inline-submit {
+            display: flex;
+            flex-direction: row;
+            gap: 0.5em;
+            justify-content: center;
+        }
+
+        input {
+            width: 100%;
+        }
+
+        input:focus,
+        select:focus {
+            border: none;
+            outline: 1px solid var(--primary-dark);
+        }
+
+        button {
+            display: flex;
+            flex-direction: row;
+            gap: 0.5em;
+            align-content: center;
+            align-items: center;
+            background-color: var(--primary);
+        }
+
+        #b-cancel, #b-reset {
+            background-color: var(--text-light);
+            color: var(--bg-dark);
+
+        }
+
+        #b-cancel:hover, #b-reset:hover {
+            background-color: var(--danger);
+        }
+
+        img {
+            height: 16px;
+        }
+
+        dialog {
+            width: 50%;
+            max-width: 50%;
+            min-height: auto;
+            max-height: 80vh;
+            margin: auto; /* top/bottom 5em, horizontal auto */
+            padding: 2em;
+            border: none;
+            border-radius: var(--normal-border);
+            background-color: var(--bg-light);
+        }
+
+        dialog::backdrop {
+            background: rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(4px);
+        }
+
+        .dialog-content {
+            display: flex;
+            flex-direction: column;
+            gap: 1em;
+            max-height: 100%;
+        }
+
+        .table-wrapper {
+            overflow-y: scroll;
+            max-height: 50vh;
+            border-radius: var(--button-border);
+            width: 100%;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        th {
+            font-family: JetBrainsMono;
+            font-weight: bold;
+            text-align: left;
+            padding: 1em;
+            color: var(--text-light);
+        }
+
+        td {
+            font-family: JetBrainsMono;
+            font-weight: lighter;
+            padding: 1em;
+            color: var(--text-light);
+        }
+
+        tr {
+            background-color: var(--row-even);
+        }
+
+        tr:nth-child(even) {
+            background-color: var(--row-odd);
+        }
+
+        button.select-btn {
+            background-color: inherit;
+        }
+
+        button.select-btn:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .dialog-cancel {
+            margin: 0 auto;
+            display: flex;
+            text-align: center;
+        }
     </style>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/fonts.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/colors.css') }}">
+    <script>
+        function normalizePath(path) {
+            return path.replace(/\\/g, "/").trim();
+        }
+
+        function isValidAbsolutePath(path) {
+            // Windows: C:/something
+            const windowsAbs = /^[a-zA-Z]:\/.+/;
+
+            // Unix: /something
+            const unixAbs = /^\/.+/;
+
+            return windowsAbs.test(path) || unixAbs.test(path);
+        }
+
+        async function onClickSave() {
+            const normalized = normalizePath(document.getElementById("file_path").value);
+
+            const file_path = isValidAbsolutePath(normalized)
+                ? normalized
+                : null;
+
+            if (!file_path) {
+                alert("Please enter a valid absolute file path");
+                return;
+            }
+
+            const body = JSON.stringify({
+                file_path,
+                auto_update: document.getElementById("enabled").value === "true",
+                cron: document.getElementById("cron").value
+            });
+
+            const url = "/api/tracked-apps"
+            const response = await fetch(url,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: body
+                },
+            );
+
+            if (!response.ok) {
+                alert(`Failed to save tracked app: ${response.statusText}`);
+                return;
+            }
+
+            window.location.href = "/tracked-apps";
+        }
+
+        async function getBaseDir() {
+            const response = await fetch("/api/file-system/api-path",
+                {
+                    method: "GET",
+                }
+            );
+
+            if (!response.ok) {
+                alert(`Failed to get home dir: ${response.statusText}`);
+                return;
+            }
+            const data = await response.json()
+            return data.path
+        }
+
+        function makeRow(name, path, isDir) {
+            const tr = document.createElement("tr");
+            tr.className = "folder-row";
+
+            // Name column
+            const tdName = document.createElement("td");
+            tdName.textContent = name;
+            tdName.style.width = "75%";
+            tdName.style.overflow = "hidden";
+            tdName.style.textOverflow = "ellipsis";
+            tdName.style.whiteSpace = "nowrap"
+            tr.appendChild(tdName);
+
+            if (isDir) {
+                tr.style.cursor = "pointer";
+
+                // Single click = navigate
+                tdName.onclick = () => browse(path);
+
+                // Select column
+                const tdSelect = document.createElement("td");
+                tdSelect.className = "folder-dialog-button-cell";
+                tdSelect.style.display = "flex";
+                tdSelect.style.justifyContent = "flex-end";
+
+                const btn = document.createElement("button");
+                btn.textContent = "Select";
+                btn.style.cursor = "pointer";
+                btn.className = "select-btn"
+                btn.onclick = () => {
+                    document.getElementById("file_path").value = path.replace(/\\/g, "/");
+                    browseFolder(); // close modal
+                };
+                tdSelect.appendChild(btn);
+                tr.appendChild(tdSelect);
+            } else {
+                // File: visually disabled
+                tr.style.opacity = "0.5";
+                tr.style.cursor = "not-allowed";
+
+                // Add empty cell for alignment
+                const tdEmpty = document.createElement("td");
+                tr.appendChild(tdEmpty);
+            }
+
+            return tr;
+        }
+
+        function renderFolderTable(entries, currentPath) {
+            const table = document.querySelector("#folderDialog table");
+            table.innerHTML = "";
+
+            // Optional: parent dir
+            if (currentPath) {
+                const parent = currentPath.replace(/\\/g, "/").split("/").slice(0, -1).join("/");
+                if (parent) {
+                    table.appendChild(makeRow("..", parent, true));
+                }
+            }
+
+            for (const entry of entries) {
+                table.appendChild(
+                    makeRow(entry.name, entry.path, entry.is_dir)
+                );
+            }
+        }
+
+        async function browse(path) {
+            const url = `/api/file-system?path=${encodeURIComponent(path)}`;
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                alert("Failed to browse directory");
+                return;
+            }
+
+            const entries = await response.json();
+
+            entries.sort((a, b) => {
+                if (a.is_dir && !b.is_dir) return -1; // a folder, b file -> a first
+                if (!a.is_dir && b.is_dir) return 1;  // a file, b folder -> b first
+                return a.name.localeCompare(b.name);   // same type: sort alphabetically
+            });
+
+            renderFolderTable(entries, path);
+        }
+
+        async function browseFolder() {
+            const dialog = document.getElementById("folderDialog");
+
+            if (dialog.open) {
+                dialog.close();
+            } else {
+                dialog.showModal();
+                const baseDir = await getBaseDir()
+                await browse(baseDir);
+            }
+        }
+
+
+        addEventListener("DOMContentLoaded", () => {
+            const searchInput = document.getElementById("folder-search");
+
+            searchInput.addEventListener("input", () => {
+                const filter = searchInput.value.toLowerCase();
+                const rows = document.querySelectorAll("#folderDialog .folder-row");
+
+                rows.forEach(row => {
+                    const nameCell = row.querySelector("td:first-child");
+                    if (!nameCell) return;
+                    const text = nameCell.textContent.toLowerCase();
+
+                    if (text.includes(filter)) {
+                        row.style.display = ""; // show row
+                    } else {
+                        row.style.display = "none"; // hide row
+                    }
+                });
+            });
+        });
+    </script>
 </head>
 <body>
-    {% include '_navbar.html' %}
-    <h1>Add new tracked app</h1>
+{% include '_navbar.html' %}
+<main>
+    <header>
+        <h1>Add new tracked app</h1>
+        <div class="title">
+            <p class="back">Add new tracked app</p>
+        </div>
+    </header>
+    <section>
+        <div class="form-header">
+            <h2>Configuration</h2>
+            <h3 id="h3">Configure settings for the new application</h3>
+        </div>
+        <hr>
+        <form onsubmit="event.preventDefault(); onClickSave();">
+            <!-- File path with browse -->
+            <div class="form-group">
+                <label for="file_path">File path</label>
+                <div class="form-group-inline">
+                    <input id="file_path" type="text" placeholder="C:/path/to/folder" required>
+                    <button type="button" onclick="browseFolder()">
+                        <img class="folder-icon" src="{{ url_for('static', filename='icons/folder.svg') }}"
+                             alt="Folder icon">
+                        Browse
+                    </button>
+                </div>
+            </div>
+
+            <!-- Enabled/Disabled -->
+            <div class="form-group">
+                <label for="enabled">Auto sync enabled/disabled</label>
+                <select id="enabled">
+                    <option value="true">Enabled</option>
+                    <option value="false">Disabled</option>
+                </select>
+            </div>
+
+            <!-- Cron schedule -->
+            <div class="form-group">
+                <label for="cron">Cron schedule</label>
+                <input id="cron" type="text" placeholder="0 */6 * * *">
+            </div>
+
+            <!-- Save button -->
+            <div class="form-group">
+                <div class="form-group-inline-submit">
+                    <button id="b-cancel" type="button" onclick="history.back()">Cancel</button>
+                    <button id="b-reset" type="reset">Reset</button>
+                    <button id="b-submit" type="submit">
+                        <img class="plus-icon" src="{{ url_for('static', filename='icons/plus.svg') }}" alt="Plus icon">
+                        Save app
+                    </button>
+                </div>
+            </div>
+        </form>
+    </section>
+    <dialog id="folderDialog">
+        <div class="dialog-content">
+            <input id="folder-search" type="text" placeholder="Search...">
+            <div class="table-wrapper">
+                <table>
+                    <tbody>
+                    <tr class="folder-row"></tr>
+                    </tbody>
+                </table>
+            </div>
+            <button type="button" class="dialog-cancel" onclick="browseFolder()">Close</button>
+        </div>
+    </dialog>
+</main>
 </body>
 </html>

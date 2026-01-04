@@ -96,7 +96,7 @@ class UpBackFacade:
     def __sync_app(self, tracked_app: TrackedApp, sync_id):
         source_dir = Path(tracked_app.file_path)
         folder_name = source_dir.stem
-        backup_dir = Path(__file__).parent.parent / "backups" / folder_name
+        backup_dir = Path(__file__).parent.parent.parent.parent / "backups" / folder_name
         backup_dir.mkdir(parents=True, exist_ok=True)
 
         if not source_dir.is_dir():

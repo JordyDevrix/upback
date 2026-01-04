@@ -11,9 +11,16 @@ from upback.models.models import TrackedApp
 from upback.services.synchronization_service import running_syncs
 from upback.utils.utils import get_cron_description, stream_next_cron, get_folder_data, get_home_directory
 
-app = Flask(__name__)
+here = os.path.dirname(os.path.abspath(__file__))
+print(here)
+app = Flask(
+    __name__,
+    template_folder=os.path.join(here, "templates"),
+    static_folder=os.path.join(here, "static")
+)
 upBackFacade = UpBackFacade()
 global_exception_handler = GlobalExceptionHandler(app)
+
 
 
 @app.route("/api/tracked-apps", methods=["GET"])
@@ -86,7 +93,7 @@ def get_file_system_api():
 # Frontend routes
 @app.route("/", methods=["GET"])
 def home():
-    return render_template("templates/index.html")
+    return render_template("index.html")
 
 
 @app.route("/tracked-apps", methods=["GET"])

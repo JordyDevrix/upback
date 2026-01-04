@@ -8,10 +8,10 @@ from upback.models.models import TrackedApp, Backup
 
 class DB:
     def __init__(self):
-        self.db_tracked_apps_path = Path(__file__).parent.parent.parent / "upback_data" / "tracked_apps.db"
+        self.db_tracked_apps_path = Path(__file__).parent.parent.parent.parent / "upback_data" / "tracked_apps.db"
         self.db_tracked_apps_path.parent.mkdir(parents=True, exist_ok=True)  # ensure directory exists
 
-        self.db_backups_path = Path(__file__).parent.parent.parent / "upback_data" / "backups.db"
+        self.db_backups_path = Path(__file__).parent.parent.parent.parent / "upback_data" / "backups.db"
         self.db_backups_path.parent.mkdir(parents=True, exist_ok=True)  # ensure directory exists
 
     def init_db(self):

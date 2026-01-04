@@ -1,0 +1,14 @@
+Metadata-Version: 2.4
+Name: upback
+Version: 0.1.0
+Requires-Python: >=3.13
+License-File: LICENSE
+Requires-Dist: apscheduler>=3.11.2
+Requires-Dist: asgiref>=3.11.0
+Requires-Dist: cron-descriptor>=2.0.6
+Requires-Dist: flasgger>=0.9.7.1
+Requires-Dist: flask>=3.1.2
+Requires-Dist: flask-restx>=1.3.2
+Requires-Dist: uuid>=1.30
+Requires-Dist: uvicorn>=0.40.0
+Dynamic: license-file

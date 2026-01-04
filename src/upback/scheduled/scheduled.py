@@ -3,8 +3,8 @@ from uuid import UUID
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 
-from src.facade import UpBackFacade
-from src.models.models import TrackedApp
+from upback.facades.facade import UpBackFacade
+from upback.models.models import TrackedApp
 
 scheduler = BackgroundScheduler()
 upBackFacade = UpBackFacade()

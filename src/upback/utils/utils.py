@@ -6,8 +6,8 @@ from pathlib import Path
 from cron_descriptor import get_description
 from apscheduler.triggers.cron import CronTrigger
 
-from src.constants.constants import SYSTEM_TIME_ZONE
-from src.exceptions.exceptions import ApiException
+from upback.constants.constants import SYSTEM_TIME_ZONE
+from upback.exceptions.exceptions import ApiException
 
 
 def sse(data=None, event=None, id=None, retry=None):

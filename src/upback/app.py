@@ -1,16 +1,19 @@
+import argparse
+import os
 from typing import List
 from uuid import UUID
-
 from flask import Flask, Response, request, render_template, jsonify, current_app
 
-from src.config.global_exception_handler import GlobalExceptionHandler
-from src.facade import UpBackFacade
-from src.scheduled import scheduled
-from src.models.models import TrackedApp
-from src.services.synchronization_service import running_syncs
-from src.utils.utils import get_cron_description, stream_next_cron, get_folder_data, get_home_directory
+from upback.config.global_exception_handler import GlobalExceptionHandler
+from upback.facades.facade import UpBackFacade
+from upback.scheduled import scheduled
+from upback.models.models import TrackedApp
+from upback.services.synchronization_service import running_syncs
+from upback.utils.utils import get_cron_description, stream_next_cron, get_folder_data, get_home_directory
 
 app = Flask(__name__)
+upBackFacade = UpBackFacade()
+global_exception_handler = GlobalExceptionHandler(app)
 
 
 @app.route("/api/tracked-apps", methods=["GET"])
@@ -83,7 +86,7 @@ def get_file_system_api():
 # Frontend routes
 @app.route("/", methods=["GET"])
 def home():
-    return render_template("index.html")
+    return render_template("templates/index.html")
 
 
 @app.route("/tracked-apps", methods=["GET"])
@@ -112,13 +115,18 @@ def favicon():
     return current_app.send_static_file("favicon.ico")
 
 
-if __name__ == '__main__':
-    upBackFacade = UpBackFacade()
+def main():
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--port", "-p", type=int, default=8080)
+    args = parser.parse_args()
+
     upBackFacade.init_db()
 
     scheduled.load_backup_jobs()
     scheduled.start_scheduler()
 
-    global_exception_handler = GlobalExceptionHandler(app)
+    app.run(host='0.0.0.0', port=args.port, threaded=True)
 
-    app.run(host='0.0.0.0', port=8080, threaded=True)
+if __name__ == '__main__':
+    main()

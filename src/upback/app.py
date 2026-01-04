@@ -89,6 +89,13 @@ def get_file_system_api():
     path = request.args.get("path")
     return jsonify(get_folder_data(path))
 
+@app.route("/api/tracked-apps/<uuid>", methods=["DELETE"])
+def delete_tracked_app(uuid: UUID):
+    upBackFacade.delete_tracked_app_by_uuid(uuid)
+    scheduled.load_backup_jobs()
+    return Response(status=200)
+
+
 
 # Frontend routes
 @app.route("/", methods=["GET"])

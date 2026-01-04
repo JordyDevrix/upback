@@ -186,3 +186,15 @@ class UpBackFacade:
             ))
 
         return backups
+
+    def delete_tracked_app_by_uuid(self, app_id: UUID):
+        backups = self.get_app_backups(app_id)
+
+        for backup in backups:
+            self.db.delete_backup(backup.backup_id)
+
+        self.db.delete_tracked_app(app_id)
+
+
+
+

@@ -93,5 +93,20 @@ class DB:
             cursor.execute(sql, (str(service_uuid),))
             return cursor.fetchone()
 
+    def delete_tracked_app(self, app_id: UUID):
+        sql = "DELETE FROM tracked_apps WHERE uuid = ?"
+        with sqlite3.connect(self.db_tracked_apps_path) as conn:
+            conn.execute(sql, (str(app_id),))
+            conn.commit()
+
+    def delete_backup(self, backup_id: str):
+        sql = "DELETE FROM backups WHERE uuid = ?"
+        with sqlite3.connect(self.db_backups_path) as conn:
+            conn.execute(sql, (backup_id,))
+            conn.commit()
+
+
+
+
 
 

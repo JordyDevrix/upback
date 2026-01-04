@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import List
 from uuid import UUID
 
-from src.models.models import TrackedApp, Backup
+from upback.models.models import TrackedApp, Backup
 
 
 class DB:

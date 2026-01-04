@@ -12,12 +12,12 @@ import uuid
 
 from apscheduler.triggers.cron import CronTrigger
 
-from src.exceptions.exceptions import ApiException
-from src.models.models import TrackedApp, Backup, SyncStatus
+from upback.exceptions.exceptions import ApiException
+from upback.models.models import TrackedApp, Backup, SyncStatus
 
-from src.database.database import DB
-from src.services.synchronization_service import running_syncs
-from src.utils.utils import sse, normalize_path
+from upback.database.database import DB
+from upback.services.synchronization_service import running_syncs
+from upback.utils.utils import sse, normalize_path
 
 
 class UpBackFacade:

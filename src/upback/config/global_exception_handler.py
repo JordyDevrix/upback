@@ -1,5 +1,5 @@
 from flask import jsonify, Flask
-from src.exceptions.exceptions import ApiException
+from upback.exceptions.exceptions import ApiException
 
 
 class GlobalExceptionHandler:

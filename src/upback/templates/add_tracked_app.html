@@ -193,6 +193,10 @@
             display: flex;
             text-align: center;
         }
+
+        small, a {
+            color: var(--text-muted);
+        }
     </style>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/fonts.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/colors.css') }}">
@@ -376,14 +380,38 @@
                     const text = nameCell.textContent.toLowerCase();
 
                     if (text.includes(filter)) {
-                        row.style.display = ""; // show row
+                        row.style.display = "";
                     } else {
-                        row.style.display = "none"; // hide row
+                        row.style.display = "none";
                     }
                 });
             });
+
+            const cronInput = document.getElementById("cron");
+            const cronHuman = document.getElementById("cron-human");
+
+            cronInput.addEventListener("input", () => {
+                const value = cronInput.value.trim();
+
+                if (!value) {
+                    cronHuman.textContent = "Enter a cron expression";
+                    cronHuman.classList.remove("error");
+                    return;
+                }
+
+                try {
+                    cronHuman.textContent = cronstrue.toString(value, {
+                        use24HourTimeFormat: true
+                    });
+                    cronHuman.classList.remove("error");
+                } catch (e) {
+                    cronHuman.textContent = "Invalid cron expression";
+                    cronHuman.classList.add("error");
+                }
+            });
         });
     </script>
+    <script src="https://unpkg.com/cronstrue@latest/dist/cronstrue.min.js"></script>
 </head>
 <body>
 {% include '_navbar.html' %}
@@ -427,6 +455,10 @@
             <div class="form-group">
                 <label for="cron">Cron schedule</label>
                 <input id="cron" type="text" placeholder="0 */6 * * *">
+                <small id="cron-human" class="cron-human">Enter a cron expression</small>
+                <small>
+                    [<a target="_blank" rel="noopener noreferrer" href="https://cronitor.io/guides/cron-jobs">info</a>]
+                </small>
             </div>
 
             <!-- Save button -->

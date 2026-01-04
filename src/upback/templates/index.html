@@ -30,6 +30,41 @@
             display: flex;
             gap: 1em;
         }
+
+        th {
+            font-family: JetBrainsMono;
+            font-weight: bold;
+            text-align: left;
+            padding: 1em;
+            color: var(--text-light);
+        }
+
+        td {
+            font-family: JetBrainsMono;
+            font-weight: lighter;
+            padding: 1em;
+            color: var(--text-light);
+        }
+
+        tr {
+            background-color: var(--row-even);
+        }
+
+        tr:nth-child(even) {
+            background-color: var(--row-odd);
+        }
+
+        .table-responsive {
+            width: 100%;
+            border: 1px solid var(--text-light);
+            border-radius: var(--normal-border);
+            overflow: hidden;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
     </style>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/fonts.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/colors.css') }}">
@@ -40,9 +75,36 @@
     <header>
         <h1>Home</h1>
         <div class="title">
-            <p class="back">Home</p>
+            <p class="back">Welcome</p>
         </div>
     </header>
+    <div class="table-responsive">
+        <table>
+            <thead>
+            <tr>
+                <th>Tracked apps</th>
+                <td>
+                    {{ tracked_apps_amount }}
+                </td>
+            </tr>
+            <tr>
+                <th>Enabled tracked apps</th>
+                <td>
+                    {{ tracked_apps_amount }}
+                </td>
+            </tr>
+            <tr>
+                <th>Next run</th>
+                <td>
+                    {% if tracked_apps %}
+                    {{ tracked_apps[0].uuid }}
+                    {% else %}
+                    {% endif %}
+                </td>
+            </tr>
+            </thead>
+        </table>
+    </div>
 </main>
 </body>
 </html>

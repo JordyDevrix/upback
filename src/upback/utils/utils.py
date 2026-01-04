@@ -27,12 +27,15 @@ def sse(data=None, event=None, id=None, retry=None):
 def normalize_path(path: str) -> str:
     return Path(path).expanduser().resolve().as_posix()
 
+
 def get_cron_description(cron: str) -> str:
     return get_description(cron)
+
 
 def get_next_run(cron_expr: str):
     trigger = CronTrigger.from_crontab(cron_expr)
     return trigger.get_next_fire_time(None, datetime.now())
+
 
 def stream_next_cron(cron: str):
     try:
@@ -41,7 +44,6 @@ def stream_next_cron(cron: str):
 
             delta = next_run - datetime.now(SYSTEM_TIME_ZONE)
             seconds_left = max(int(delta.total_seconds()), 0)
-
 
             if seconds_left == 0:
                 yield sse(
@@ -54,7 +56,6 @@ def stream_next_cron(cron: str):
                     event="next_run",
                     id=None,
                 )
-
 
             yield sse(
                 data={
@@ -73,6 +74,7 @@ def stream_next_cron(cron: str):
         # Client disconnected
         return
 
+
 def get_folder_data(path: str) -> list[dict]:
     if not os.path.exists(path) or not os.path.isdir(path):
         raise ApiException("Invalid path", code=400)
@@ -88,5 +90,13 @@ def get_folder_data(path: str) -> list[dict]:
 
     return items
 
+
 def get_home_directory() -> Path:
     return Path.home()
+
+
+def sort_by_cron(apps):
+    return sorted(
+        apps,
+        key=lambda app: get_next_run(app.cron)
+    )

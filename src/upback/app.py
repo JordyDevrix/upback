@@ -9,7 +9,7 @@ from upback.facades.facade import UpBackFacade
 from upback.scheduled import scheduled
 from upback.models.models import TrackedApp
 from upback.services.synchronization_service import running_syncs
-from upback.utils.utils import get_cron_description, stream_next_cron, get_folder_data, get_home_directory
+from upback.utils.utils import get_cron_description, stream_next_cron, get_folder_data, get_home_directory, sort_by_cron
 
 here = os.path.dirname(os.path.abspath(__file__))
 print(here)
@@ -93,7 +93,17 @@ def get_file_system_api():
 # Frontend routes
 @app.route("/", methods=["GET"])
 def home():
-    return render_template("index.html")
+    tracked_apps = upBackFacade.get_tracked_apps()
+    return render_template(
+        "index.html",
+        tracked_apps=sort_by_cron(tracked_apps),
+        tracked_apps_enabled=[_app for _app in tracked_apps if _app.auto_update == True],
+        tracked_apps_amount=len(tracked_apps)
+    )
+
+@app.route("/settings", methods=["GET"])
+def settings():
+    return render_template("settings.html")
 
 
 @app.route("/tracked-apps", methods=["GET"])

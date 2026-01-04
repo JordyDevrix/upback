@@ -119,20 +119,14 @@ class UpBackFacade:
             for idx, file in enumerate(files, start=1):
                 arcname = file.relative_to(source_dir.parent)
                 zipf.write(file, arcname)
-
-                sync_status = SyncStatus(
+                running_syncs[sync_id] = SyncStatus(
                     app_id=str(tracked_app.uuid),
                     current=idx,
                     total=total_files,
                     file=str(file),
                 )
 
-                running_syncs[sync_id] = sync_status
-
-                yield sync_status
-
-                if idx == total_files:
-                    running_syncs.pop(sync_id)
+        running_syncs.pop(sync_id)
 
     def sync_all_apps(self):
         tracked_apps = self.get_tracked_apps()
@@ -141,24 +135,18 @@ class UpBackFacade:
             for app_index, tracked_app in enumerate(tracked_apps):
                 app_sync_id = str(uuid.uuid4())
 
-                for _ in self.__sync_app(tracked_app, app_sync_id):
-                    pass
+                self.__sync_app(tracked_app, app_sync_id)
 
         threading.Thread(target=__sync).start()
 
         return HTTPStatus.ACCEPTED.value
 
-
     def sync_app_by_uuid(self, service_uuid: UUID):
         tracked_app = self.get_tracked_app_by_uuid(service_uuid)
         sync_id = str(uuid.uuid4())
 
-        if tracked_app is None:
-            raise ApiException("No tracked app found", code=HTTPStatus.NOT_FOUND.value)
-
         def __sync(_sync_id):
-            for _ in self.__sync_app(tracked_app, _sync_id):
-                pass
+            self.__sync_app(tracked_app, _sync_id)
 
         threading.Thread(target=__sync, args=(sync_id,)).start()
 

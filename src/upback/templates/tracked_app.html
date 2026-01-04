@@ -408,6 +408,16 @@
             }
         }
 
+        async function deleteApp() {
+            const confirmed = confirm("Are you sure you want to delete this app?\nbackups files will not be deleted but will not be visible in the app anymore");
+            if (!confirmed) return;
+            const res = await fetch(`/api/tracked-apps/${TRACKED_APP_UUID}`, {method: "DELETE"});
+            if (!res.ok) {
+                alert("couldn't delete app")
+            }
+            window.location.replace("/tracked-apps")
+        }
+
         document.addEventListener("DOMContentLoaded", () => {
             loadBackups();
             trackCrons();
@@ -520,7 +530,7 @@
                                  alt="Sync icon">
                             Sync now
                         </button>
-                        <button id="delete" title="Remove">
+                        <button id="delete" title="Remove" onclick="deleteApp('{{ tracked_app.uuid }}')">
                             <img style="width: 20%" src="{{ url_for('static', filename='icons/trashcan.svg') }}"
                                  alt="Trashcan icon">
                             Remove

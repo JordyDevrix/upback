@@ -10,6 +10,7 @@ class TrackedApp:
     auto_update: bool
     cron: str
 
+
 @dataclass
 class Backup:
     backup_id: str
@@ -17,10 +18,18 @@ class Backup:
     file_path: str
     timestamp: str
 
+
+@dataclass
+class BackupFile:
+    backup_id: str
+    app_id: str
+    file_size: int
+    file_path: str
+
+
 @dataclass
 class SyncStatus:
     app_id: str
     current: int
     total: int
     file: str
-

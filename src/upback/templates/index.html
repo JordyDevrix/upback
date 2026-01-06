@@ -94,6 +94,24 @@
                 </td>
             </tr>
             <tr>
+                <th>Backups made</th>
+                <td>
+                    {{ backups_amount }}
+                </td>
+            </tr>
+            <tr>
+                <th>Tracked backups files found</th>
+                <td>
+                    {{ backup_files_found_amount }}
+                </td>
+            </tr>
+            <tr>
+                <th>Total tracked backups file size</th>
+                <td>
+                    {{ backup_files_size }}
+                </td>
+            </tr>
+            <tr>
                 <th>Next run</th>
                 <td>
                     {% if tracked_apps %}

@@ -377,6 +377,37 @@
             }
         }
 
+        function timeAgo(timestamp) {
+            const now = new Date();
+            const time = new Date(timestamp * 1000); // timestamp in seconds
+            const diff = Math.floor((now - time) / 1000); // difference in seconds
+            console.log(diff)
+
+            if (diff < 60) {
+                return "Now";
+            } else if (diff < 120) {
+                return "A minute ago";
+            } else if (diff < 3600) { // less than 1 hour
+                const minutes = Math.floor(diff / 60);
+                return `${minutes} minutes ago`;
+            } else if (diff < 7200) { // less than 2 hours
+                return "An hour ago";
+            } else if (diff < 86400) { // less than 1 day
+                const hours = Math.floor(diff / 3600);
+                return `${hours} hours ago`;
+            } else if (diff < 172800) { // less than 2 days
+                return "Yesterday";
+            } else {
+                // return full date for older timestamps
+                const year = time.getFullYear();
+                const month = String(time.getMonth() + 1).padStart(2, "0");
+                const day = String(time.getDate()).padStart(2, "0");
+                const hours = String(time.getHours()).padStart(2, "0");
+                const minutes = String(time.getMinutes()).padStart(2, "0");
+                return `${year}-${month}-${day} ${hours}:${minutes}`;
+            }
+        }
+
         async function loadBackups() {
             const res = await fetch(`/api/tracked-apps/${TRACKED_APP_UUID}/backups`);
             if (!res.ok) return;
@@ -396,9 +427,13 @@
             } else {
                 for (const backup of data.backups) {
                     const tr = document.createElement("tr");
+
+                    const ts = Math.floor(backup.timestamp);
+                    const formattedTimestamp = timeAgo(ts);
+
                     tr.innerHTML = `
                         <td>${backup.file_path}</td>
-                        <td>${backup.timestamp}</td>
+                        <td>${formattedTimestamp}</td>
                         <td>${backup.backup_id}</td>
                         <td class="sync-status">
                             <img class="sync-icon"

@@ -13,7 +13,7 @@ import uuid
 from apscheduler.triggers.cron import CronTrigger
 
 from upback.exceptions.exceptions import ApiException
-from upback.models.models import TrackedApp, Backup, SyncStatus
+from upback.models.models import TrackedApp, Backup, SyncStatus, BackupFile
 
 from upback.database.database import DB
 from upback.services.synchronization_service import running_syncs
@@ -194,6 +194,51 @@ class UpBackFacade:
             self.db.delete_backup(backup.backup_id)
 
         self.db.delete_tracked_app(app_id)
+
+    def get_tracked_app_status(self, app_id) -> bool:
+        return self.get_tracked_app_by_uuid(app_id).auto_update
+
+    def update_tracked_app(self, data: dict, app_id: UUID):
+        tracked_app = self.get_tracked_app_by_uuid(app_id)
+        tracked_app = TrackedApp(
+            uuid=tracked_app.uuid,
+            file_path=normalize_path(tracked_app.file_path),
+            auto_update=bool(data.get("auto_update")),
+            cron=str(data.get("cron")),
+        )
+        self.db.update_tracked_app(tracked_app)
+
+    def get_all_backups(self) -> List[Backup]:
+        backup_data = self.db.get_all_backups()
+
+        backups: List[Backup] = []
+
+        for backup in backup_data:
+            backups.append(Backup(
+                backup_id=backup[0],
+                app_id=backup[1],
+                file_path=backup[2].split("/")[-1],
+                timestamp=backup[3],
+            ))
+
+        return backups
+
+    def get_backup_files(self, backup_id: str) -> BackupFile | None:
+        backup = self.db.get_backup(backup_id)
+        file_path = Path(backup[2])
+
+        if file_path.exists():
+            file_size = file_path.stat().st_size
+            return BackupFile(
+                backup_id=backup[0],
+                app_id=backup[1],
+                file_size=file_size,
+                file_path=str(file_path),
+            )
+
+        return None
+
+
 
 
 

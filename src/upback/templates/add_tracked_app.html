@@ -206,12 +206,8 @@
         }
 
         function isValidAbsolutePath(path) {
-            // Windows: C:/something
             const windowsAbs = /^[a-zA-Z]:\/.+/;
-
-            // Unix: /something
             const unixAbs = /^\/.+/;
-
             return windowsAbs.test(path) || unixAbs.test(path);
         }
 
@@ -348,7 +344,7 @@
             entries.sort((a, b) => {
                 if (a.is_dir && !b.is_dir) return -1; // a folder, b file -> a first
                 if (!a.is_dir && b.is_dir) return 1;  // a file, b folder -> b first
-                return a.name.localeCompare(b.name);   // same type: sort alphabetically
+                return a.name.localeCompare(b.name);
             });
 
             renderFolderTable(entries, path);
@@ -366,10 +362,8 @@
             }
         }
 
-
         addEventListener("DOMContentLoaded", () => {
             const searchInput = document.getElementById("folder-search");
-
             searchInput.addEventListener("input", () => {
                 const filter = searchInput.value.toLowerCase();
                 const rows = document.querySelectorAll("#folderDialog .folder-row");
@@ -389,7 +383,6 @@
 
             const cronInput = document.getElementById("cron");
             const cronHuman = document.getElementById("cron-human");
-
             cronInput.addEventListener("input", () => {
                 const value = cronInput.value.trim();
 
@@ -409,6 +402,9 @@
                     cronHuman.classList.add("error");
                 }
             });
+        });
+
+        document.addEventListener("DOMContentLoaded", () => {
         });
     </script>
     <script src="https://unpkg.com/cronstrue@latest/dist/cronstrue.min.js"></script>

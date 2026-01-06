@@ -243,6 +243,9 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/toggle.css') }}">
     <script>
         const TRACKED_APP_UUID = "{{ tracked_app.uuid }}";
+        const TRACKED_APP_CRON = "{{ tracked_app.cron }}";
+        const TRACKED_APP_AUTO_UPDATE = "{{ tracked_app.auto_update }}";
+        const TRACKED_APP_FILE_PATH = "{{ tracked_app.file_path }}";
         const globalBackups = {};
         let nextCronES = null;
         let allSyncsES = null;
@@ -271,21 +274,27 @@
             }
         }
 
-        function toggleChanged(element) {
+        async function toggleChanged(element) {
             const isChecked = element.checked;
-            const params = {
-                enabled: isChecked,
-                timestamp: Date.now()
-            };
 
-            fetch("{{ url_for('get_tracked_apps_api') }}", {
-                method: 'POST',
+            const params = {
+                auto_update: !isChecked,
+                cron: TRACKED_APP_CRON,
+                file_path: TRACKED_APP_FILE_PATH,
+                uuid: TRACKED_APP_UUID
+            }
+
+            const response = await fetch(`/api/tracked-apps/update/${TRACKED_APP_UUID}`, {
+                method: 'PUT',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(params)
             })
-                .then(response => response.json())
-                .then(data => console.log('Server response:', data))
-                .catch(error => console.error('Error:', error));
+
+            if (!response.ok) {
+                alert(`Failed to update resource ${response.statusText}`)
+            } else {
+                location.reload()
+            }
         }
 
         function trackCrons() {
@@ -301,7 +310,12 @@
                 const hh = String(Math.floor(secs / 3600)).padStart(2, "0");
                 const mm = String(Math.floor((secs % 3600) / 60)).padStart(2, "0");
                 const ss = String(secs % 60).padStart(2, "0");
-                next_run_element.textContent = `${hh}h ${mm}m ${ss}s`;
+
+                if (TRACKED_APP_AUTO_UPDATE === true) {
+                    next_run_element.textContent = `${hh}h ${mm}m ${ss}s`;
+                } else {
+                    next_run_element.textContent = `Theoretical next run: ${hh}h ${mm}m ${ss}s`
+                }
 
                 if (data.sync_run === true) {
                     setTimeout(() => loadBackups(), 1000);
@@ -418,12 +432,32 @@
             window.location.replace("/tracked-apps")
         }
 
+        async function setButtonStatus(toggle) {
+            try {
+                const res = await fetch(`/api/tracked-apps/${TRACKED_APP_UUID}`);
+                if (!res.ok) {
+                    console.error("Failed to fetch status");
+                    return;
+                }
+
+                const data = await res.json();
+
+                toggle.checked = !Boolean(data.auto_update);
+                console.log(data)
+            } catch (err) {
+                console.error("Error fetching toggle status", err);
+            }
+        }
+
         document.addEventListener("DOMContentLoaded", () => {
+            const scrollY = sessionStorage.getItem("scrollY");
+            const toggle = document.getElementById("toggle");
+
             loadBackups();
             trackCrons();
             trackAllSyncs();
+            setButtonStatus(toggle);
 
-            const scrollY = sessionStorage.getItem("scrollY");
             if (scrollY) {
                 window.scrollTo(0, parseInt(scrollY));
                 sessionStorage.removeItem("scrollY");

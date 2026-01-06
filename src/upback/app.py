@@ -1,5 +1,6 @@
 import argparse
 import os
+from dataclasses import asdict
 from typing import List
 from uuid import UUID
 from flask import Flask, Response, request, render_template, jsonify, current_app
@@ -22,10 +23,25 @@ upBackFacade = UpBackFacade()
 global_exception_handler = GlobalExceptionHandler(app)
 
 
-
 @app.route("/api/tracked-apps", methods=["GET"])
 def get_tracked_apps_api() -> List[TrackedApp]:
     return upBackFacade.get_tracked_apps()
+
+@app.route("/api/tracked-apps/<uuid>", methods=["GET"])
+def get_tracked_app_api(uuid: UUID) -> Response:
+    return jsonify(asdict(upBackFacade.get_tracked_app_by_uuid(uuid)))
+
+@app.route("/api/tracked-apps/<uuid>/status", methods=["GET"])
+def get_tracked_app_status_api(uuid: UUID) -> Response:
+    return jsonify({"enabled": upBackFacade.get_tracked_app_status(uuid)})
+
+
+@app.route("/api/tracked-apps/update/<uuid>", methods=["PUT"])
+def update_tracked_app_api(uuid: UUID) -> Response:
+    data = request.get_json()
+    upBackFacade.update_tracked_app(data, uuid)
+    scheduled.load_backup_jobs()
+    return Response(status=200)
 
 
 @app.route("/api/tracked-apps", methods=["POST"])
@@ -89,27 +105,47 @@ def get_file_system_api():
     path = request.args.get("path")
     return jsonify(get_folder_data(path))
 
+
 @app.route("/api/tracked-apps/<uuid>", methods=["DELETE"])
-def delete_tracked_app(uuid: UUID):
+def delete_tracked_api(uuid: UUID):
     upBackFacade.delete_tracked_app_by_uuid(uuid)
     scheduled.load_backup_jobs()
     return Response(status=200)
 
 
-
 # Frontend routes
 @app.route("/", methods=["GET"])
-def home():
+def home_web():
     tracked_apps = upBackFacade.get_tracked_apps()
+    backups = upBackFacade.get_all_backups()
+    found_backup_files = []
+    size_bytes = 0
+
+    for backup in backups:
+        files = upBackFacade.get_backup_files(backup.backup_id)
+        if files is not None:
+            found_backup_files.append(files)
+            size_bytes += files.file_size
+
+    if size_bytes >= 1_000_000_000:
+        total_filesize = f"{size_bytes / 1_000_000_000:.2f} GB"
+    else:
+        total_filesize = f"{size_bytes / 1_000_000:.2f} MB"
+
     return render_template(
         "index.html",
         tracked_apps=sort_by_cron(tracked_apps),
         tracked_apps_enabled=[_app for _app in tracked_apps if _app.auto_update == True],
-        tracked_apps_amount=len(tracked_apps)
+        tracked_apps_amount=len(tracked_apps),
+        backups=backups,
+        backups_amount=len(backups),
+        backup_files_found_amount=len(found_backup_files),
+        backup_files_size=total_filesize
     )
 
+
 @app.route("/settings", methods=["GET"])
-def settings():
+def settings_web():
     return render_template("settings.html")
 
 
@@ -151,6 +187,7 @@ def main():
     scheduled.start_scheduler()
 
     app.run(host='0.0.0.0', port=args.port, threaded=True)
+
 
 if __name__ == '__main__':
     main()

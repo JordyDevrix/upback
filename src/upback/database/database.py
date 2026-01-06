@@ -16,22 +16,52 @@ class DB:
 
     def init_db(self):
         tracked_apps_sql = """
-        CREATE TABLE IF NOT EXISTS tracked_apps (
-            uuid TEXT PRIMARY KEY NOT NULL,
-            file_path TEXT NOT NULL,
-            auto_update BOOLEAN NOT NULL,
-            cron TEXT NOT NULL
-        )
-        """
+                           CREATE TABLE IF NOT EXISTS tracked_apps
+                           (
+                               uuid
+                               TEXT
+                               PRIMARY
+                               KEY
+                               NOT
+                               NULL,
+                               file_path
+                               TEXT
+                               NOT
+                               NULL,
+                               auto_update
+                               BOOLEAN
+                               NOT
+                               NULL,
+                               cron
+                               TEXT
+                               NOT
+                               NULL
+                           ) \
+                           """
 
         backups_sql = """
-        CREATE TABLE IF NOT EXISTS backups (
-            uuid TEXT PRIMARY KEY NOT NULL,
-            app_id TEXT NOT NULL,
-            file_path TEXT NOT NULL,
-            timestamp TEXT NOT NULL
-        )
-        """
+                      CREATE TABLE IF NOT EXISTS backups
+                      (
+                          uuid
+                          TEXT
+                          PRIMARY
+                          KEY
+                          NOT
+                          NULL,
+                          app_id
+                          TEXT
+                          NOT
+                          NULL,
+                          file_path
+                          TEXT
+                          NOT
+                          NULL,
+                          timestamp
+                          TEXT
+                          NOT
+                          NULL
+                      ) \
+                      """
 
         with sqlite3.connect(self.db_tracked_apps_path) as conn:
             conn.execute(tracked_apps_sql)
@@ -43,21 +73,22 @@ class DB:
 
     def save_tracked_app(self, tracked_app: TrackedApp):
         sql = """
-        INSERT INTO tracked_apps (uuid, file_path, auto_update, cron)
-        VALUES (?, ?, ?, ?)
-        """
+              INSERT INTO tracked_apps (uuid, file_path, auto_update, cron)
+              VALUES (?, ?, ?, ?) \
+              """
         try:
             with sqlite3.connect(self.db_tracked_apps_path) as conn:
-                conn.execute(sql, (str(tracked_app.uuid), tracked_app.file_path, tracked_app.auto_update, tracked_app.cron))
+                conn.execute(sql,
+                             (str(tracked_app.uuid), tracked_app.file_path, tracked_app.auto_update, tracked_app.cron))
                 conn.commit()
         except Exception as e:
             print("DB Error:", e)
 
     def save_backup(self, backup: Backup):
         sql = """
-        INSERT INTO backups (uuid, app_id, file_path, timestamp)
-        VALUES (?, ?, ?, ?)
-        """
+              INSERT INTO backups (uuid, app_id, file_path, timestamp)
+              VALUES (?, ?, ?, ?) \
+              """
         try:
             with sqlite3.connect(self.db_backups_path) as conn:
                 conn.execute(sql, (backup.backup_id, backup.app_id, backup.file_path, backup.timestamp))
@@ -105,8 +136,33 @@ class DB:
             conn.execute(sql, (backup_id,))
             conn.commit()
 
+    def update_tracked_app(self, tracked_app):
+        sql = """
+              UPDATE tracked_apps
+              SET auto_update = ?,
+                  file_path   = ?,
+                  cron = ?
+              WHERE uuid = ?
+              """
+        with sqlite3.connect(self.db_tracked_apps_path) as conn:
+            conn.execute(sql, (
+                tracked_app.auto_update,
+                tracked_app.file_path,
+                tracked_app.cron,
+                tracked_app.uuid,
+            ))
+            conn.commit()
 
+    def get_all_backups(self) -> List[tuple]:
+        sql = "SELECT * FROM backups"
+        with sqlite3.connect(self.db_backups_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute(sql)
+            return cursor.fetchall()
 
-
-
-
+    def get_backup(self, backup_id) -> tuple:
+        sql = "SELECT * FROM backups WHERE uuid = ?"
+        with sqlite3.connect(self.db_backups_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute(sql, (backup_id,))
+            return cursor.fetchone()

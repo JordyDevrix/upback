@@ -244,7 +244,7 @@
     <script>
         const TRACKED_APP_UUID = "{{ tracked_app.uuid }}";
         const TRACKED_APP_CRON = "{{ tracked_app.cron }}";
-        const TRACKED_APP_AUTO_UPDATE = "{{ tracked_app.auto_update }}";
+        const TRACKED_APP_AUTO_UPDATE = {{ tracked_app.auto_update | tojson }};
         const TRACKED_APP_FILE_PATH = "{{ tracked_app.file_path }}";
         const globalBackups = {};
         let nextCronES = null;

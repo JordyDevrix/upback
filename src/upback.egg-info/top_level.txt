@@ -1,4 +1,1 @@
-static
-templates
 upback
-upback_data

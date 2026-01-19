@@ -1,7 +1,6 @@
 LICENSE
 pyproject.toml
 src/upback/__init__.py
-src/upback/__main__.py
 src/upback/app.py
 src/upback.egg-info/PKG-INFO
 src/upback.egg-info/SOURCES.txt

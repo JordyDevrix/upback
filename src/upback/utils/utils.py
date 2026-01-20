@@ -33,8 +33,7 @@ def normalize_path(path: str) -> str:
 def get_cron_description(cron: str) -> str:
     return get_description(cron)
 
-
-def get_next_run(cron_expr: str):
+def convert_to_valid_cron(cron_expr: str) -> str:
     parts = cron_expr.split()
 
     # Map standard cron digits to names to bypass APScheduler's 0-index issue
@@ -48,6 +47,11 @@ def get_next_run(cron_expr: str):
     if len(parts) == 5 and parts[4] in cron_mapping:
         parts[4] = cron_mapping[parts[4]]
         cron_expr = " ".join(parts)
+
+    return cron_expr
+
+def get_next_run(cron_expr: str):
+    cron_expr = convert_to_valid_cron(cron_expr)
 
     now = datetime.now(SYSTEM_TIME_ZONE)
     trigger = CronTrigger.from_crontab(cron_expr, timezone=SYSTEM_TIME_ZONE)

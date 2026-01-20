@@ -17,7 +17,7 @@ from upback.models.models import TrackedApp, Backup, SyncStatus, BackupFile
 
 from upback.database.database import DB
 from upback.services.synchronization_service import running_syncs
-from upback.utils.utils import sse, normalize_path, get_next_run
+from upback.utils.utils import sse, normalize_path
 
 
 class UpBackFacade:

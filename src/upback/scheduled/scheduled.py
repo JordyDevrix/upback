@@ -5,6 +5,7 @@ from apscheduler.triggers.cron import CronTrigger
 
 from upback.facades.facade import UpBackFacade
 from upback.models.models import TrackedApp
+from upback.utils.utils import convert_to_valid_cron
 
 scheduler = BackgroundScheduler()
 upBackFacade = UpBackFacade()
@@ -21,7 +22,7 @@ def load_backup_jobs():
 
         scheduler.add_job(
             backup_service,
-            CronTrigger.from_crontab(service.cron),
+            CronTrigger.from_crontab(convert_to_valid_cron(service.cron)),
             args=[service.uuid],
             id=f"backup-{service.uuid}",
             replace_existing=True,

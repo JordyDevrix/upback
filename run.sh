@@ -16,8 +16,6 @@ while [[ "$#" -gt 0 ]]; do
     shift
 done
 
-echo "Syncing packages..."
-uv sync
 
 # Build frontend
 echo "Building Vue frontend..."
@@ -26,7 +24,21 @@ npm install
 npm run build
 
 # Go back to root folder
-cd ../../../..
+cd ../../..
+
+ls
+
+echo "Activating virtual environment..."
+# macOS / Linux activation
+if [[ "$(uname)" == "Darwin" || "$(uname)" == "Linux" ]]; then
+    source .venv/bin/activate
+else
+    echo "Unsupported OS for this script."
+    exit 1
+fi
+
+echo "Syncing packages..."
+uv sync
 
 # Starting UpBack service
 echo "Starting UpBack on port $PORT..."

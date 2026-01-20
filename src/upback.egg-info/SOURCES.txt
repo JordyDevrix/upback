@@ -1,5 +1,7 @@
 LICENSE
 pyproject.toml
+src/frontend/upback-frontend/node_modules/flatted/python/flatted.py
+src/frontend/upback-frontend/node_modules/shell-quote/print.py
 src/upback/__init__.py
 src/upback/app.py
 src/upback.egg-info/PKG-INFO

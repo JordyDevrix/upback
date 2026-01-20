@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
+set -e
 # run.sh - cross-platform script to sync and run UpBack
+
 
 # Default port
 PORT=8080
@@ -17,5 +19,15 @@ done
 echo "Syncing packages..."
 uv sync
 
+# Build frontend
+echo "Building Vue frontend..."
+cd src/frontend/upback-frontend
+npm install
+npm run build
+
+# Go back to root folder
+cd ../../../..
+
+# Starting UpBack service
 echo "Starting UpBack on port $PORT..."
 uv run upback --port "$PORT"

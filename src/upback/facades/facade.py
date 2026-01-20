@@ -170,7 +170,8 @@ class UpBackFacade:
                     },
                     event="progress",
                 )
-            time.sleep(1)
+
+            time.sleep(0.5)
 
     def get_app_backups(self, app_id: UUID) -> List[Backup]:
         backup_data = self.db.get_backups(app_id)

@@ -1,3 +1,18 @@
+<script setup lang="ts">
+import HomeDetailsComponent from "@/components/HomeDetailsComponent.vue";
+import {onMounted, ref} from "vue";
+import UtilService from "@/services/UtilService";
+
+const apiDetails = ref<any>(null);
+
+onMounted(async () => {
+  const res = await UtilService.getApiDetails();
+  if (res.ok) {
+    apiDetails.value = res.data;
+  }
+})
+</script>
+
 <template>
   <main>
     <header>
@@ -6,16 +21,9 @@
         <p>Welcome</p>
       </div>
     </header>
+    <HomeDetailsComponent v-if="apiDetails" :apiDetails="apiDetails"/>
   </main>
 </template>
-
-<script lang="ts">
-import { defineComponent } from 'vue';
-
-export default defineComponent({
-  name: 'HomeView',
-});
-</script>
 
 <style scoped lang="scss">
 header {

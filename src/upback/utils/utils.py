@@ -3,6 +3,8 @@ import os
 import time
 from datetime import datetime
 from pathlib import Path
+
+import croniter
 from cron_descriptor import get_description
 from apscheduler.triggers.cron import CronTrigger
 
@@ -31,47 +33,57 @@ def normalize_path(path: str) -> str:
 def get_cron_description(cron: str) -> str:
     return get_description(cron)
 
+def convert_to_valid_cron(cron_expr: str) -> str:
+    parts = cron_expr.split()
+
+    # Map standard cron digits to names to bypass APScheduler's 0-index issue
+    # Standard: 0=Sun, 1=Mon, ..., 7=Sun
+    cron_mapping = {
+        '0': 'sun', '1': 'mon', '2': 'tue', '3': 'wed',
+        '4': 'thu', '5': 'fri', '6': 'sat', '7': 'sun'
+    }
+
+    # check if the last part (Day of Week) is a single digit
+    if len(parts) == 5 and parts[4] in cron_mapping:
+        parts[4] = cron_mapping[parts[4]]
+        cron_expr = " ".join(parts)
+
+    return cron_expr
 
 def get_next_run(cron_expr: str):
-    trigger = CronTrigger.from_crontab(cron_expr)
-    return trigger.get_next_fire_time(None, datetime.now())
+    cron_expr = convert_to_valid_cron(cron_expr)
+
+    now = datetime.now(SYSTEM_TIME_ZONE)
+    trigger = CronTrigger.from_crontab(cron_expr, timezone=SYSTEM_TIME_ZONE)
+    return trigger.get_next_fire_time(None, now)
 
 
-def stream_next_cron(cron: str):
+def stream_next_cron(cron_expr: str):
     try:
         while True:
-            next_run = get_next_run(cron)
+            now = datetime.now(SYSTEM_TIME_ZONE)
 
-            delta = next_run - datetime.now(SYSTEM_TIME_ZONE)
+            next_run = get_next_run(cron_expr)
+
+            if next_run is None:
+                break
+
+            delta = next_run - now
             seconds_left = max(int(delta.total_seconds()), 0)
-
-            if seconds_left == 0:
-                yield sse(
-                    data={
-                        "next_run": next_run.isoformat(),
-                        "seconds_remaining": seconds_left,
-                        "human_readable": get_cron_description(cron),
-                        "sync_run": True,
-                    },
-                    event="next_run",
-                    id=None,
-                )
 
             yield sse(
                 data={
                     "next_run": next_run.isoformat(),
                     "seconds_remaining": seconds_left,
-                    "human_readable": get_cron_description(cron),
-                    "sync_run": False,
+                    "human_readable": get_description(cron_expr),
+                    "sync_run": seconds_left == 0
                 },
-                event="next_run",
                 id=None,
+                event="next_run",
             )
 
-            time.sleep(1)  # 5s is plenty
-
+            time.sleep(1)
     except GeneratorExit:
-        # Client disconnected
         return
 
 

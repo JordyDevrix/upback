@@ -17,7 +17,7 @@ from upback.models.models import TrackedApp, Backup, SyncStatus, BackupFile
 
 from upback.database.database import DB
 from upback.services.synchronization_service import running_syncs
-from upback.utils.utils import sse, normalize_path, get_next_run
+from upback.utils.utils import sse, normalize_path
 
 
 class UpBackFacade:
@@ -170,7 +170,8 @@ class UpBackFacade:
                     },
                     event="progress",
                 )
-            time.sleep(1)
+
+            time.sleep(0.5)
 
     def get_app_backups(self, app_id: UUID) -> List[Backup]:
         backup_data = self.db.get_backups(app_id)

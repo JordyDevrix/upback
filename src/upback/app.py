@@ -1,16 +1,16 @@
-import argparse
 import os
 from dataclasses import asdict
 from typing import List
 from uuid import UUID
-from flask import Flask, Response, request, render_template, jsonify, current_app
+
+from whitenoise import WhiteNoise
+from flask import Flask, Response, request, jsonify, send_from_directory
 
 from upback.config.global_exception_handler import GlobalExceptionHandler
 from upback.facades.facade import UpBackFacade
 from upback.scheduled import scheduled
 from upback.models.models import TrackedApp
-from upback.services.synchronization_service import running_syncs
-from upback.utils.utils import get_cron_description, stream_next_cron, get_folder_data, get_home_directory, sort_by_cron
+from upback.utils.utils import stream_next_cron, get_folder_data, get_home_directory, sort_by_cron
 
 here = os.path.dirname(os.path.abspath(__file__))
 print(here)
@@ -19,6 +19,10 @@ app = Flask(
     template_folder=os.path.join(here, "templates"),
     static_folder=os.path.join(here, "static")
 )
+
+vue_dist = os.path.join(here, "../frontend/upback-frontend/dist")
+app.wsgi_app = WhiteNoise(app.wsgi_app, root=vue_dist, prefix="")
+
 upBackFacade = UpBackFacade()
 global_exception_handler = GlobalExceptionHandler(app)
 
@@ -27,9 +31,11 @@ global_exception_handler = GlobalExceptionHandler(app)
 def get_tracked_apps_api() -> List[TrackedApp]:
     return upBackFacade.get_tracked_apps()
 
+
 @app.route("/api/tracked-apps/<uuid>", methods=["GET"])
 def get_tracked_app_api(uuid: UUID) -> Response:
     return jsonify(asdict(upBackFacade.get_tracked_app_by_uuid(uuid)))
+
 
 @app.route("/api/tracked-apps/<uuid>/status", methods=["GET"])
 def get_tracked_app_status_api(uuid: UUID) -> Response:
@@ -70,7 +76,7 @@ def get_tracked_apps_backups_api(uuid: UUID):
             {
                 "file_path": b.file_path,
                 "timestamp": b.timestamp,
-                "backup_id": b.backup_id
+                "uuid": b.backup_id
             }
             for b in backups
         ]
@@ -113,9 +119,8 @@ def delete_tracked_api(uuid: UUID):
     return Response(status=200)
 
 
-# Frontend routes
-@app.route("/", methods=["GET"])
-def home_web():
+@app.route("/api/details", methods=["GET"])
+def get_details_api():
     tracked_apps = upBackFacade.get_tracked_apps()
     backups = upBackFacade.get_all_backups()
     found_backup_files = []
@@ -132,47 +137,25 @@ def home_web():
     else:
         total_filesize = f"{size_bytes / 1_000_000:.2f} MB"
 
-    return render_template(
-        "index.html",
-        tracked_apps=sort_by_cron(tracked_apps),
-        tracked_apps_enabled=[_app for _app in tracked_apps if _app.auto_update == True],
-        tracked_apps_amount=len(tracked_apps),
-        backups=backups,
-        backups_amount=len(backups),
-        backup_files_found_amount=len(found_backup_files),
-        backup_files_size=total_filesize
-    )
+    return jsonify({
+        "tracked_apps": sort_by_cron(tracked_apps),
+        "tracked_apps_enabled": [_app for _app in tracked_apps if _app.auto_update == True],
+        "tracked_apps_amount": len(tracked_apps),
+        "backups": backups,
+        "backups_amount": len(backups),
+        "backup_files_found_amount": len(found_backup_files),
+        "backup_files_size": total_filesize
+    })
 
 
-@app.route("/settings", methods=["GET"])
-def settings_web():
-    return render_template("settings.html")
-
-
-@app.route("/tracked-apps", methods=["GET"])
-def get_tracked_apps_web():
-    return render_template("tracked_apps.html", tracked_apps=upBackFacade.get_tracked_apps())
-
-
-@app.route("/tracked-apps/<uuid>", methods=["GET"])
-def get_tracked_app_web(uuid: UUID):
-    tracked_app = upBackFacade.get_tracked_app_by_uuid(uuid)
-    return render_template(
-        "tracked_app.html",
-        tracked_app=tracked_app,
-        human_cron=get_cron_description(tracked_app.cron),
-        active_syncs=list(set(running_syncs.keys()))
-    )
-
-
-@app.route("/add-tracked-app", methods=["GET"])
-def add_tracked_app_web():
-    return render_template("add_tracked_app.html")
-
-
-@app.route("/favicon.ico")
-def favicon():
-    return current_app.send_static_file("favicon.ico")
+# Frontend
+@app.route("/", defaults={"path": ""})
+@app.route("/<path:path>")
+def index(path):
+    file_path = os.path.join(vue_dist, path)
+    if os.path.exists(file_path) and os.path.isfile(file_path):
+        return send_from_directory(vue_dist, path)
+    return send_from_directory(vue_dist, "index.html")
 
 
 def main():

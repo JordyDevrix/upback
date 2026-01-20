@@ -1,3 +1,3 @@
-from datetime import datetime
+from zoneinfo import ZoneInfo
 
-SYSTEM_TIME_ZONE = datetime.now().astimezone().tzinfo
+SYSTEM_TIME_ZONE = ZoneInfo("Europe/Amsterdam")

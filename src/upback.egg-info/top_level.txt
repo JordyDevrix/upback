@@ -1,4 +1,2 @@
-static
-templates
+frontend
 upback
-upback_data

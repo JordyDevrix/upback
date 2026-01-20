@@ -1,0 +1,29 @@
+:root {
+  body {
+    background-color: var(--bg-dark);
+  }
+
+  h1, h2, h3, h4, p, th, td, button, span, label {
+    color: var(--text-light);
+  }
+
+  button {
+    transition: 0.1s;
+  }
+
+  button:hover {
+    cursor: pointer;
+  }
+
+  main {
+    width: 80%;
+    display: flex;
+    flex-direction: column;
+    gap: 2em;
+    margin: 0 auto;
+  }
+
+  // border radius
+  --normal-border: 10px;
+  --button-border: 5px;
+}

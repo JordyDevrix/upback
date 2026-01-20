@@ -14,11 +14,7 @@ from upback.utils.utils import stream_next_cron, get_folder_data, get_home_direc
 
 here = os.path.dirname(os.path.abspath(__file__))
 print(here)
-app = Flask(
-    __name__,
-    template_folder=os.path.join(here, "templates"),
-    static_folder=os.path.join(here, "static")
-)
+app = Flask(__name__)
 
 vue_dist = os.path.join(here, "../frontend/upback-frontend/dist")
 app.wsgi_app = WhiteNoise(app.wsgi_app, root=vue_dist, prefix="")

@@ -1,6 +1,8 @@
 name: Type Checking
 
-on: [push, pull_request]
+on:
+  pull_request:
+    branches: [ main ]
 
 jobs:
   type-check:

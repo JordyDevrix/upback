@@ -14,6 +14,7 @@ onMounted(async () => {
 </script>
 
 <template>
+  <div class="background-layer"></div>
   <main>
     <header>
       <h1>Home</h1>

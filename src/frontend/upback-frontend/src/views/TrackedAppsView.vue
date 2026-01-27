@@ -4,6 +4,7 @@ import TrackedAppsComponent from "@/components/TrackedAppsComponent.vue";
 </script>
 
 <template>
+  <div class="background-layer"></div>
   <main>
     <header>
       <h1>Tracked Applications</h1>

@@ -89,6 +89,9 @@ h2 {
   border: 1px solid var(--text-light);
   border-radius: var(--normal-border);
   overflow: hidden;
+  background: var(--bg-dark-transparent);
+  backdrop-filter: blur(var(--bg-blur));
+  -webkit-backdrop-filter: blur(var(--bg-blur));
 }
 
 .table-options {

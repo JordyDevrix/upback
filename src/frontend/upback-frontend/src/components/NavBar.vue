@@ -18,6 +18,7 @@ nav {
   padding: 0;
   width: 80%;
   margin: 0 auto;
+  background: var(--bg-dark);
 }
 
 nav a {

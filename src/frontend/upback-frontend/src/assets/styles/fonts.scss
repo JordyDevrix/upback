@@ -1,18 +1,38 @@
 @font-face {
     font-family: 'JetBrainsMono';
-    src: url('../fonts/JetBrainsMono-Regular.ttf') format('truetype');
+    src: url('@/assets/fonts/JetBrainsMono-Regular.ttf') format('truetype');
     font-weight: normal;
 }
 @font-face {
     font-family: 'JetBrainsMono';
-    src: url('../fonts/JetBrainsMono-Bold.ttf') format('truetype');
+    src: url('@/assets/fonts/JetBrainsMono-Bold.ttf') format('truetype');
     font-weight: bold;
 }
 @font-face {
     font-family: 'JetBrainsMono';
-    src: url('../fonts/JetBrainsMono-Thin.ttf') format('truetype');
+    src: url('@/assets/fonts/JetBrainsMono-Thin.ttf') format('truetype');
     font-weight: 100;
 }
 body {
     font-family: 'JetBrainsMono', monospace;
+}
+
+h1, h2, h3, h4 {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: bold;
+}
+
+p, a, th, small, button, span, input, label {
+    font-family: 'JetBrainsMono', monospace;
+    font-weight: normal;
+}
+
+button, label {
+    font-family: 'JetBrainsMono', monospace;
+    font-weight: bold;
+}
+
+th {
+    font-family: 'JetBrainsMono', monospace;
+    font-weight: lighter;
 }

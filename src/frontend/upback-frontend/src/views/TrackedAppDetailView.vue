@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {defineProps, onMounted, onUnmounted, ref, watch} from 'vue'
+import {defineProps, onMounted, onUnmounted, ref} from 'vue'
 import TrackedAppBackupsComponent from "@/components/TrackedAppBackupsComponent.vue";
 import TrackedAppInfoComponent from "@/components/TrackedAppInfoComponent.vue";
 import TrackedAppOptionsComponent from "@/components/TrackedAppOptionsComponent.vue";

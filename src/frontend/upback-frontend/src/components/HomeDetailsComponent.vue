@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import {defineProps} from 'vue';
+import {useI18n} from 'vue-i18n'
 
-const props = defineProps<{
+const {t} = useI18n()
+defineProps<{
   apiDetails: any
 }>()
 
@@ -12,37 +14,37 @@ const props = defineProps<{
     <table>
       <thead>
       <tr>
-        <th>Tracked apps</th>
+        <th>{{t('home.trackedApps')}}</th>
         <td>
           {{ apiDetails.tracked_apps_amount }}
         </td>
       </tr>
       <tr>
-        <th>Enabled tracked apps</th>
+        <th>{{t('home.enabledTrackedApps')}}</th>
         <td>
           {{ apiDetails.tracked_apps_amount }}
         </td>
       </tr>
       <tr>
-        <th>Backups made</th>
+        <th>{{t('home.backupsMade')}}</th>
         <td>
           {{ apiDetails.backups_amount }}
         </td>
       </tr>
       <tr>
-        <th>Tracked backups files found</th>
+        <th>{{t('home.trackedBackupFilesFound')}}</th>
         <td>
           {{ apiDetails.backup_files_found_amount }}
         </td>
       </tr>
       <tr>
-        <th>Total tracked backups file size</th>
+        <th>{{t('home.totalTrackedBackupsFileSize')}}</th>
         <td>
           {{ apiDetails.backup_files_size }}
         </td>
       </tr>
       <tr>
-        <th>Next run</th>
+        <th>{{t('home.nextRun')}}</th>
         <td>
           {{ apiDetails.tracked_apps[0].uuid }}
         </td>

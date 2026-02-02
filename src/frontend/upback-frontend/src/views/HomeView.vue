@@ -2,7 +2,9 @@
 import HomeDetailsComponent from "@/components/HomeDetailsComponent.vue";
 import {onMounted, ref} from "vue";
 import UtilService from "@/services/UtilService";
+import {useI18n} from 'vue-i18n'
 
+const {t} = useI18n()
 const apiDetails = ref<any>(null);
 
 onMounted(async () => {
@@ -17,9 +19,9 @@ onMounted(async () => {
   <div class="background-layer"></div>
   <main>
     <header>
-      <h1>Home</h1>
+      <h1>{{t('home.home')}}</h1>
       <div class="title">
-        <p>Welcome</p>
+        <p>{{t('home.welcome')}}</p>
       </div>
     </header>
     <HomeDetailsComponent v-if="apiDetails" :apiDetails="apiDetails"/>

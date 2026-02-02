@@ -1,0 +1,24 @@
+{
+  "navbar": {
+    "home": "Accueil",
+    "trackedApps": "Applications suivies",
+    "addNew": "Ajouter",
+    "settings": "Paramètres"
+  },
+  "home": {
+    "home": "Accueil",
+    "welcome": "Bienvenue",
+    "trackedApps": "Applications suivies",
+    "enabledTrackedApps": "Applications suivies activées",
+    "backupsMade": "Sauvegardes effectuées",
+    "trackedBackupFilesFound": "Fichiers de sauvegarde suivis trouvés",
+    "totalTrackedBackupsFileSize": "Taille totale des fichiers de sauvegarde suivis",
+    "nextRun": "Prochaine exécution"
+  },
+  "settings": {
+    "settings": "Paramètres",
+    "changeApplicationSettings": "Modifier les paramètres de l'application",
+    "selectLanguage": "Sélectionner une langue",
+    "language": "Langue"
+  }
+}

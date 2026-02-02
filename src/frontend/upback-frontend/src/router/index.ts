@@ -23,6 +23,12 @@ const routes: Array<RouteRecordRaw> = [
         name: 'add-tracked-app',
         component: () => import('../views/AddTrackedAppView.vue'),
         props: true
+    },
+    {
+        path: '/settings',
+        name: 'settings',
+        component: () => import('../views/SettingsView.vue'),
+        props: true
     }
 ]
 

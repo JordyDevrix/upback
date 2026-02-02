@@ -1,0 +1,24 @@
+{
+  "navbar": {
+    "home": "Home",
+    "trackedApps": "Tracked apps",
+    "addNew": "Add new",
+    "settings": "Settings"
+  },
+  "home": {
+    "home": "Home",
+    "welcome": "Welcome",
+    "trackedApps": "Tracked apps",
+    "enabledTrackedApps": "Enabled tracked apps",
+    "backupsMade": "Backups made",
+    "trackedBackupFilesFound": "Tracked backup files found",
+    "totalTrackedBackupsFileSize": "Total tracked backups file size",
+    "nextRun": "Next run"
+  },
+  "settings": {
+    "settings": "Settings",
+    "changeApplicationSettings": "Change application settings",
+    "selectLanguage": "Select language",
+    "language": "Language"
+  }
+}

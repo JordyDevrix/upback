@@ -144,6 +144,19 @@ def get_details_api():
     })
 
 
+@app.route("/api/locale", methods=["GET"])
+def get_locale():
+    locale = upBackFacade.get_locale()
+    return jsonify({"locale": f"{locale}"})
+
+@app.route("/api/locale", methods=["POST"])
+def set_locale():
+    data = request.get_json()
+    locale = data.get("locale")
+    upBackFacade.set_locale(locale)
+    return Response(status=200)
+
+
 # Frontend
 @app.route("/", defaults={"path": ""})
 @app.route("/<path:path>")

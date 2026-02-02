@@ -14,6 +14,9 @@ class DB:
         self.db_backups_path = Path(__file__).parent.parent.parent.parent / "upback_data" / "backups.db"
         self.db_backups_path.parent.mkdir(parents=True, exist_ok=True)  # ensure directory exists
 
+        self.db_settings_path = Path(__file__).parent.parent.parent.parent / "upback_data" / "settings.db"
+        self.db_settings_path.parent.mkdir(parents=True, exist_ok=True)  # ensure directory exists
+
     def init_db(self):
         tracked_apps_sql = """
                            CREATE TABLE IF NOT EXISTS tracked_apps
@@ -63,12 +66,40 @@ class DB:
                       ) \
                       """
 
+        settings_sql = """
+                       CREATE TABLE IF NOT EXISTS settings
+                       (
+                           key
+                           TEXT
+                           PRIMARY
+                           KEY
+                           NOT
+                           NULL,
+                           value
+                           TEXT
+                           NOT
+                           NULL
+                       ) \
+                       """
+
+        default_settings_sql = [
+            "INSERT OR IGNORE INTO settings (key, value) VALUES ('locale', 'en')"
+        ]
+
         with sqlite3.connect(self.db_tracked_apps_path) as conn:
             conn.execute(tracked_apps_sql)
             conn.commit()
 
         with sqlite3.connect(self.db_backups_path) as conn:
             conn.execute(backups_sql)
+            conn.commit()
+
+        with sqlite3.connect(self.db_settings_path) as conn:
+            conn.execute(settings_sql)
+            conn.commit()
+
+            for sql in default_settings_sql:
+                conn.execute(sql)
             conn.commit()
 
     def save_tracked_app(self, tracked_app: TrackedApp):
@@ -141,7 +172,7 @@ class DB:
               UPDATE tracked_apps
               SET auto_update = ?,
                   file_path   = ?,
-                  cron = ?
+                  cron        = ?
               WHERE uuid = ?
               """
         with sqlite3.connect(self.db_tracked_apps_path) as conn:
@@ -166,3 +197,21 @@ class DB:
             cursor = conn.cursor()
             cursor.execute(sql, (backup_id,))
             return cursor.fetchone()
+
+    def get_setting(self, key: str) -> str | None:
+        sql = "SELECT value FROM settings WHERE key = ?"
+        with sqlite3.connect(self.db_settings_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute(sql, (key,))
+            result = cursor.fetchone()
+            return result[0] if result else None
+
+    def change_setting(self, key: str, value: str):
+        sql = """
+              UPDATE settings
+              SET value = ?
+              WHERE key = ?
+              """
+        with sqlite3.connect(self.db_settings_path) as conn:
+            conn.execute(sql, (value, key))
+            conn.commit()

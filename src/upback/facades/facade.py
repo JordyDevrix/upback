@@ -239,6 +239,13 @@ class UpBackFacade:
 
         return None
 
+    def set_locale(self, locale):
+        self.db.change_setting("locale", locale)
+
+    def get_locale(self):
+        locale = self.db.get_setting("locale")
+        return locale if locale is not None else "en"
+
 
 
 

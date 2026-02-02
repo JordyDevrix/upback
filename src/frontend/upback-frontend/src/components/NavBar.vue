@@ -1,13 +1,15 @@
 <script setup lang="ts">
+import {useI18n} from 'vue-i18n'
 
+const { t } = useI18n()
 </script>
 
 <template>
   <nav>
-    <router-link to="/">Home</router-link>
-    <router-link to="/tracked-apps">Tracked apps</router-link>
-    <router-link to="/add-tracked-app">Add new</router-link>
-    <router-link to="/settings">Settings</router-link>
+    <router-link to="/">{{ t('navbar.home') }}</router-link>
+    <router-link to="/tracked-apps">{{ t('navbar.trackedApps') }}</router-link>
+    <router-link to="/add-tracked-app">{{ t('navbar.addNew') }}</router-link>
+    <router-link to="/settings">{{ t('navbar.settings') }}</router-link>
     <a target="_blank" rel="noopener noreferrer" href="https://github.com/JordyDevrix/upback">GitHub</a>
   </nav>
   <div id="hr"></div>

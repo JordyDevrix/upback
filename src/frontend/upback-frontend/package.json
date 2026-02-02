@@ -16,6 +16,7 @@
     "later": "^1.2.0",
     "pinia": "^3.0.4",
     "vue": "^3.2.13",
+    "vue-i18n": "^11.2.8",
     "vue-router": "^4.0.3"
   },
   "devDependencies": {

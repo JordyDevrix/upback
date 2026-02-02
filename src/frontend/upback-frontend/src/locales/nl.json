@@ -1,0 +1,24 @@
+{
+  "navbar": {
+    "home": "Thuis",
+    "trackedApps": "Bijgehouden apps",
+    "addNew": "Nieuwe toevoegen",
+    "settings": "Instellingen"
+  },
+  "home": {
+    "home": "Thuis",
+    "welcome": "Welkom",
+    "trackedApps": "Bijgehouden apps",
+    "enabledTrackedApps": "Ingeschakelde apps",
+    "backupsMade": "Gemaakte backups",
+    "trackedBackupFilesFound": "Gevonden backupbestanden",
+    "totalTrackedBackupsFileSize": "Totale grootte van backupbestanden",
+    "nextRun": "Eerstvolgende backup run"
+  },
+  "settings": {
+    "settings": "Instellingen",
+    "changeApplicationSettings": "Verander applicatie-instellingen",
+    "selectLanguage": "Selecteer een taal",
+    "language": "Taal"
+  }
+}

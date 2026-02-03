@@ -52,4 +52,3 @@ jobs:
           sleep 5              # Wait a bit for server to start
           curl --fail http://localhost:8085/health
           kill $APP_PID        # Stop server
-      

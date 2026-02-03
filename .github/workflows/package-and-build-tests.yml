@@ -45,3 +45,6 @@ jobs:
         run: |
           echo "Frontend build is now available for backend"
           ls src/frontend/upback-frontend/dist
+
+      - name: Run app
+        run: uv run upback --port 8085

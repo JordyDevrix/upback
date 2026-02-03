@@ -1,0 +1,16 @@
+name: Frontend package and build validation
+
+on: [pull_request, workflow_dispatch]
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: |
+          cd src/frontend/upback-frontend
+          npm ci
+          npm run build

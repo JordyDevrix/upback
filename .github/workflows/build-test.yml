@@ -16,7 +16,6 @@ jobs:
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH
       - name: Install dependencies
         run: |
-          cd backend
           uv sync
 
   frontend:
@@ -27,6 +26,6 @@ jobs:
         with:
           node-version: 22
       - run: |
-          cd frontend
+          cd src/frontend/upback-frontend
           npm ci
           npm run build

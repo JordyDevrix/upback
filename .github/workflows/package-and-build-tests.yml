@@ -45,6 +45,11 @@ jobs:
         run: |
           echo "Frontend build is now available for backend"
           ls src/frontend/upback-frontend/dist
-
-      - name: Run app
-        run: uv run upback --port 8085
+      - name: Run app and check
+        run: |
+          uv run upback --port 8085 &
+          APP_PID=$!          # Save process ID
+          sleep 5              # Wait a bit for server to start
+          curl --fail http://localhost:8085/health
+          kill $APP_PID        # Stop server
+      

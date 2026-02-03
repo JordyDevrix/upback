@@ -169,6 +169,7 @@ def index(path):
 
 def main():
     import argparse
+    exit(0)
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", "-p", type=int, default=8080)
     args = parser.parse_args()

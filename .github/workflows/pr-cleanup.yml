@@ -1,4 +1,4 @@
-name: delete branch on close pr
+name: Remove merged PR Branch
 on:
   pull_request:
     types: [closed]
